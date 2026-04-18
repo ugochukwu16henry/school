@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -100,7 +101,8 @@ class PermissionSeeder extends Seeder
         // Permission::create(['name' => 'delete sections']);
 
         $user = \App\Models\User::factory()->create([
-            'email' => 'admin@school.local',
+            'email' => 'ugochukwuhenry16@gmail.com',
+            'password' => Hash::make('1995Mobuchi@'),
             'first_name' => 'Admin',
             'last_name' => 'User'
         ]);
