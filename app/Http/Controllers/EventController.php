@@ -26,11 +26,14 @@ class EventController extends Controller
         if($request->ajax()) {
             $loggedInUser = auth()->user();
             $current_school_session_id = $this->getSchoolCurrentSession();
+            $schoolId = $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id;
 
             $data = Event::whereDate('start', '>=', $request->start)
                     ->whereDate('end',   '<=', $request->end)
                     ->where('session_id', $current_school_session_id)
-                    ->where('school_id', $loggedInUser->school_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get(['id', 'title', 'start', 'end']);
             return response()->json($data);
         }
@@ -41,6 +44,7 @@ class EventController extends Controller
     {
         $loggedInUser = auth()->user();
         $current_school_session_id = $this->getSchoolCurrentSession();
+        $schoolId = $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id;
         $event = null;
         switch ($request->type) {
             case 'create':
@@ -49,13 +53,15 @@ class EventController extends Controller
                     'start' => $request->start,
                     'end' => $request->end,
                     'session_id' => $current_school_session_id,
-                    'school_id' => $loggedInUser->school_id,
+                    'school_id' => $schoolId,
                 ]);
                 break;
   
             case 'edit':
                 $editableEvent = Event::where('id', $request->id)
-                    ->where('school_id', $loggedInUser->school_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->first();
 
                 if (!$editableEvent) {
@@ -71,7 +77,9 @@ class EventController extends Controller
   
             case 'delete':
                 $deletableEvent = Event::where('id', $request->id)
-                    ->where('school_id', $loggedInUser->school_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->first();
 
                 if (!$deletableEvent) {

@@ -197,4 +197,124 @@ class TenantIsolationControllerTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    public function test_super_admin_can_edit_course_from_another_school()
+    {
+        $this->withoutMiddleware();
+
+        $schoolA = School::create([
+            'name' => 'School SA1',
+            'slug' => 'school-sa1',
+            'status' => 'active',
+            'plan' => 'starter',
+        ]);
+
+        $sessionA = SchoolSession::create([
+            'session_name' => '2029/2030',
+            'school_id' => $schoolA->id,
+        ]);
+
+        $semesterA = Semester::create([
+            'semester_name' => 'First',
+            'start_date' => now()->toDateString(),
+            'end_date' => now()->addMonths(3)->toDateString(),
+            'session_id' => $sessionA->id,
+            'school_id' => $schoolA->id,
+        ]);
+
+        $classA = SchoolClass::create([
+            'class_name' => 'SS 2',
+            'session_id' => $sessionA->id,
+            'school_id' => $schoolA->id,
+        ]);
+
+        $foreignCourse = Course::create([
+            'course_name' => 'Physics',
+            'course_type' => 'Core',
+            'class_id' => $classA->id,
+            'semester_id' => $semesterA->id,
+            'session_id' => $sessionA->id,
+            'school_id' => $schoolA->id,
+        ]);
+
+        $superAdmin = User::factory()->create([
+            'role' => 'super_admin',
+            'school_id' => null,
+        ]);
+        /** @var User $superAdmin */
+
+        $response = $this->actingAs($superAdmin)->get('/course/edit/' . $foreignCourse->id);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_super_admin_can_view_teacher_profile_from_any_school()
+    {
+        $this->withoutMiddleware();
+
+        $schoolA = School::create([
+            'name' => 'School SA2',
+            'slug' => 'school-sa2',
+            'status' => 'active',
+            'plan' => 'starter',
+        ]);
+
+        $foreignTeacher = User::factory()->create([
+            'role' => 'teacher',
+            'school_id' => $schoolA->id,
+        ]);
+
+        $superAdmin = User::factory()->create([
+            'role' => 'super_admin',
+            'school_id' => null,
+        ]);
+        /** @var User $superAdmin */
+
+        $response = $this->actingAs($superAdmin)->get('/teachers/view/profile/' . $foreignTeacher->id);
+
+        $response->assertStatus(200);
+    }
+
+    public function test_super_admin_can_edit_event_from_any_school()
+    {
+        $this->withoutMiddleware();
+
+        $schoolA = School::create([
+            'name' => 'School SA3',
+            'slug' => 'school-sa3',
+            'status' => 'active',
+            'plan' => 'starter',
+        ]);
+
+        $sessionA = SchoolSession::create([
+            'session_name' => '2030/2031',
+            'school_id' => $schoolA->id,
+        ]);
+
+        $foreignEvent = Event::create([
+            'title' => 'Cross Event',
+            'start' => now()->toDateTimeString(),
+            'end' => now()->addHour()->toDateTimeString(),
+            'session_id' => $sessionA->id,
+            'school_id' => $schoolA->id,
+        ]);
+
+        $superAdmin = User::factory()->create([
+            'role' => 'super_admin',
+            'school_id' => null,
+        ]);
+        /** @var User $superAdmin */
+
+        $response = $this->actingAs($superAdmin)
+            ->withSession(['browse_session_id' => $sessionA->id])
+            ->post('/calendar-crud-ajax', [
+                'type' => 'edit',
+                'id' => $foreignEvent->id,
+                'title' => 'Cross Event Updated',
+                'start' => now()->toDateTimeString(),
+                'end' => now()->addHour()->toDateTimeString(),
+            ]);
+
+        $response->assertStatus(200);
+    }
 }
