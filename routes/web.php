@@ -6,6 +6,7 @@ use App\Http\Controllers\ExamController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SchoolSignupController;
 use App\Http\Controllers\SchoolSetupController;
+use App\Http\Controllers\BillingController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -45,6 +46,8 @@ Route::get('/', function () {
 
 Route::get('/school/signup', [SchoolSignupController::class, 'create'])->name('school.signup.create');
 Route::post('/school/signup', [SchoolSignupController::class, 'store'])->name('school.signup.store');
+Route::post('/billing/webhook/stripe', [BillingController::class, 'stripeWebhook'])->name('billing.webhook.stripe');
+Route::post('/billing/webhook/paystack', [BillingController::class, 'paystackWebhook'])->name('billing.webhook.paystack');
 
 Auth::routes();
 
@@ -52,6 +55,10 @@ Route::middleware(['auth', 'school.access'])->group(function () {
 
     Route::get('/school/setup', [SchoolSetupController::class, 'show'])->middleware('role:admin')->name('school.setup.show');
     Route::post('/school/setup', [SchoolSetupController::class, 'store'])->middleware('role:admin')->name('school.setup.store');
+    Route::get('/billing/setup', [BillingController::class, 'setup'])->middleware('role:admin')->name('billing.setup.show');
+    Route::post('/billing/setup/checkout', [BillingController::class, 'startCheckout'])->middleware('role:admin')->name('billing.setup.checkout');
+
+    Route::middleware('subscription.active')->group(function () {
 
     Route::prefix('school')->name('school.')->group(function () {
         Route::post('session/create', [SchoolSessionController::class, 'store'])->name('session.store');
@@ -193,4 +200,5 @@ Route::middleware(['auth', 'school.access'])->group(function () {
     // Update password
     Route::get('password/edit', [UpdatePasswordController::class, 'edit'])->name('password.edit');
     Route::post('password/edit', [UpdatePasswordController::class, 'update'])->name('password.update');
+    });
 });

@@ -103,6 +103,6 @@ class SchoolSetupController extends Controller
             }
         });
 
-        return redirect()->route('dashboard.admin')->with('success', 'School setup completed successfully.');
+        return redirect()->route('billing.setup.show')->with('success', 'School setup completed successfully. Configure billing to continue onboarding.');
     }
 }

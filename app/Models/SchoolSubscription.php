@@ -5,29 +5,29 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class School extends Model
+class SchoolSubscription extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name',
-        'slug',
-        'status',
-        'trial_ends_at',
+        'school_id',
         'plan',
+        'status',
+        'provider',
+        'provider_reference',
+        'trial_ends_at',
+        'starts_at',
+        'ends_at',
     ];
 
     protected $casts = [
         'trial_ends_at' => 'datetime',
+        'starts_at' => 'datetime',
+        'ends_at' => 'datetime',
     ];
 
-    public function users()
+    public function school()
     {
-        return $this->hasMany(User::class);
-    }
-
-    public function subscriptions()
-    {
-        return $this->hasMany(SchoolSubscription::class);
+        return $this->belongsTo(School::class);
     }
 }

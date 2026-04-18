@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\School;
+use App\Models\SchoolSubscription;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -72,6 +73,14 @@ class SchoolSignupController extends Controller
                 'zip' => '100001',
                 'role' => 'admin',
                 'school_id' => $school->id,
+            ]);
+
+            SchoolSubscription::create([
+                'school_id' => $school->id,
+                'plan' => 'trial',
+                'status' => 'trialing',
+                'trial_ends_at' => $school->trial_ends_at,
+                'starts_at' => now(),
             ]);
 
             return [$school, $admin];
