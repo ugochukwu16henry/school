@@ -15,6 +15,10 @@
                         <div class="alert alert-success">{{ session('success') }}</div>
                     @endif
 
+                    @if(session('error'))
+                        <div class="alert alert-danger">{{ session('error') }}</div>
+                    @endif
+
                     @if(session('checkout_url'))
                         <div class="alert alert-info">
                             Checkout URL placeholder: <a href="{{ session('checkout_url') }}" target="_blank">{{ session('checkout_url') }}</a>

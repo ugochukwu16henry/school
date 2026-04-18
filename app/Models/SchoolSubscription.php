@@ -30,4 +30,9 @@ class SchoolSubscription extends Model
     {
         return $this->belongsTo(School::class);
     }
+
+    public function webhookEvents()
+    {
+        return $this->hasMany(SchoolSubscriptionWebhookEvent::class, 'school_subscription_id');
+    }
 }
