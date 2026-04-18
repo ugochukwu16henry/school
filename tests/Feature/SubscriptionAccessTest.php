@@ -89,9 +89,11 @@ class SubscriptionAccessTest extends TestCase
 
     private function createSchool(string $slug): School
     {
+        $uniqueSlug = $slug . '-' . uniqid();
+
         return School::create([
-            'name' => 'School ' . $slug,
-            'slug' => $slug,
+            'name' => 'School ' . $uniqueSlug,
+            'slug' => $uniqueSlug,
             'status' => 'active',
             'plan' => 'trial',
             'trial_ends_at' => now()->addDays(14),

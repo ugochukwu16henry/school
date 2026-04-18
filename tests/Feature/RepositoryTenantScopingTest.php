@@ -49,13 +49,8 @@ class RepositoryTenantScopingTest extends TestCase
 
         $schoolAAttendance = $repo->getSectionAttendance($class->id, $section->id, $session->id, $schoolA->id);
 
-        if ($schoolAAttendance->count() !== 1) {
-            throw new \RuntimeException('Attendance repository returned records outside tenant scope.');
-        }
-
-        if ((int) $schoolAAttendance->first()->school_id !== (int) $schoolA->id) {
-            throw new \RuntimeException('Attendance repository returned wrong tenant school_id.');
-        }
+        $this->assertCount(1, $schoolAAttendance, 'Attendance repository returned records outside tenant scope.');
+        $this->assertSame((int) $schoolA->id, (int) $schoolAAttendance->first()->school_id, 'Attendance repository returned wrong tenant school_id.');
     }
 
     public function test_mark_repository_filters_by_school_id()
@@ -125,27 +120,24 @@ class RepositoryTenantScopingTest extends TestCase
             $schoolA->id
         );
 
-        if ($schoolAMarks->count() !== 1) {
-            throw new \RuntimeException('Mark repository returned records outside tenant scope.');
-        }
-
-        if ((int) $schoolAMarks->first()->school_id !== (int) $schoolA->id) {
-            throw new \RuntimeException('Mark repository returned wrong tenant school_id.');
-        }
+        $this->assertCount(1, $schoolAMarks, 'Mark repository returned records outside tenant scope.');
+        $this->assertSame((int) $schoolA->id, (int) $schoolAMarks->first()->school_id, 'Mark repository returned wrong tenant school_id.');
     }
 
     private function seedCommonAcademicData(): array
     {
+        $suffix = uniqid();
+
         $schoolA = School::create([
             'name' => 'Repo Scope A',
-            'slug' => 'repo-scope-a',
+            'slug' => 'repo-scope-a-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'Repo Scope B',
-            'slug' => 'repo-scope-b',
+            'slug' => 'repo-scope-b-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -163,6 +155,7 @@ class RepositoryTenantScopingTest extends TestCase
 
         $section = Section::create([
             'section_name' => 'Blue',
+            'room_no' => 'R-01',
             'class_id' => $class->id,
             'session_id' => $session->id,
             'school_id' => $schoolA->id,

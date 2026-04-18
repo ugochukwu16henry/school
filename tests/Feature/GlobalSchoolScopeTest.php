@@ -17,16 +17,18 @@ class GlobalSchoolScopeTest extends TestCase
 
     public function test_user_model_queries_are_automatically_scoped_by_school()
     {
+        $suffix = uniqid();
+
         $schoolA = School::create([
             'name' => 'Scope School A',
-            'slug' => 'scope-school-a',
+            'slug' => 'scope-school-a-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'Scope School B',
-            'slug' => 'scope-school-b',
+            'slug' => 'scope-school-b-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -51,27 +53,24 @@ class GlobalSchoolScopeTest extends TestCase
 
         $visibleTeachers = User::where('role', 'teacher')->get();
 
-        if ($visibleTeachers->count() !== 1) {
-            throw new \RuntimeException('Global school scope failed: user query returned cross-school records.');
-        }
-
-        if ((int) $visibleTeachers->first()->school_id !== (int) $schoolA->id) {
-            throw new \RuntimeException('Global school scope failed: wrong school user returned.');
-        }
+        $this->assertCount(1, $visibleTeachers, 'Global school scope failed: user query returned cross-school records.');
+        $this->assertSame((int) $schoolA->id, (int) $visibleTeachers->first()->school_id, 'Global school scope failed: wrong school user returned.');
     }
 
     public function test_course_queries_are_scoped_by_school_without_manual_filters()
     {
+        $suffix = uniqid();
+
         $schoolA = School::create([
             'name' => 'Course Scope A',
-            'slug' => 'course-scope-a',
+            'slug' => 'course-scope-a-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'Course Scope B',
-            'slug' => 'course-scope-b',
+            'slug' => 'course-scope-b-' . $suffix,
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -123,12 +122,7 @@ class GlobalSchoolScopeTest extends TestCase
 
         $visibleCourses = Course::query()->get();
 
-        if ($visibleCourses->count() !== 1) {
-            throw new \RuntimeException('Global school scope failed: course query returned cross-school records.');
-        }
-
-        if ((int) $visibleCourses->first()->school_id !== (int) $schoolA->id) {
-            throw new \RuntimeException('Global school scope failed: wrong school course returned.');
-        }
+        $this->assertCount(1, $visibleCourses, 'Global school scope failed: course query returned cross-school records.');
+        $this->assertSame((int) $schoolA->id, (int) $visibleCourses->first()->school_id, 'Global school scope failed: wrong school course returned.');
     }
 }

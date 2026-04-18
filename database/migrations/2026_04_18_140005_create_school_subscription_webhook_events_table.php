@@ -13,6 +13,10 @@ class CreateSchoolSubscriptionWebhookEventsTable extends Migration
      */
     public function up()
     {
+        if (Schema::hasTable('school_subscription_webhook_events')) {
+            return;
+        }
+
         Schema::create('school_subscription_webhook_events', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('school_subscription_id')->nullable();

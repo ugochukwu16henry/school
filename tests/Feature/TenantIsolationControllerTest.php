@@ -16,20 +16,25 @@ class TenantIsolationControllerTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function uniqueSlug(string $base): string
+    {
+        return $base . '-' . uniqid();
+    }
+
     public function test_admin_cannot_edit_course_from_another_school()
     {
         $this->withoutMiddleware();
 
         $schoolA = School::create([
             'name' => 'School A',
-            'slug' => 'school-a',
+            'slug' => $this->uniqueSlug('school-a'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'School B',
-            'slug' => 'school-b',
+            'slug' => $this->uniqueSlug('school-b'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -70,7 +75,7 @@ class TenantIsolationControllerTest extends TestCase
 
         $response = $this->actingAs($adminA)->get('/course/edit/' . $foreignCourse->id);
 
-        $response->assertStatus(403);
+        $response->assertStatus(404);
     }
 
     public function test_admin_cannot_edit_event_from_another_school()
@@ -79,14 +84,14 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School A2',
-            'slug' => 'school-a2',
+            'slug' => $this->uniqueSlug('school-a2'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'School B2',
-            'slug' => 'school-b2',
+            'slug' => $this->uniqueSlug('school-b2'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -129,14 +134,14 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School A3',
-            'slug' => 'school-a3',
+            'slug' => $this->uniqueSlug('school-a3'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'School B3',
-            'slug' => 'school-b3',
+            'slug' => $this->uniqueSlug('school-b3'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -163,14 +168,14 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School A4',
-            'slug' => 'school-a4',
+            'slug' => $this->uniqueSlug('school-a4'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
 
         $schoolB = School::create([
             'name' => 'School B4',
-            'slug' => 'school-b4',
+            'slug' => $this->uniqueSlug('school-b4'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -204,7 +209,7 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School SA1',
-            'slug' => 'school-sa1',
+            'slug' => $this->uniqueSlug('school-sa1'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -254,7 +259,7 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School SA2',
-            'slug' => 'school-sa2',
+            'slug' => $this->uniqueSlug('school-sa2'),
             'status' => 'active',
             'plan' => 'starter',
         ]);
@@ -281,7 +286,7 @@ class TenantIsolationControllerTest extends TestCase
 
         $schoolA = School::create([
             'name' => 'School SA3',
-            'slug' => 'school-sa3',
+            'slug' => $this->uniqueSlug('school-sa3'),
             'status' => 'active',
             'plan' => 'starter',
         ]);

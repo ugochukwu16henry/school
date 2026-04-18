@@ -198,9 +198,11 @@ class BillingWebhookTest extends TestCase
 
     private function createSubscription(string $provider, string $reference): SchoolSubscription
     {
+        $slug = strtolower($reference) . '-' . uniqid();
+
         $school = School::create([
             'name' => 'Test School ' . $reference,
-            'slug' => strtolower($reference),
+            'slug' => $slug,
             'status' => 'active',
             'plan' => 'trial',
             'trial_ends_at' => now()->addDays(14),

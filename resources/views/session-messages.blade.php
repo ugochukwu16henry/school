@@ -9,7 +9,7 @@
     </p>
 @endif
 
-@if ($errors->any())
+@if (isset($errors) && $errors->any())
     @foreach ($errors->all() as $error)
         <p class="text-danger">
             <i class="bi bi-exclamation-diamond-fill me-2"></i>
