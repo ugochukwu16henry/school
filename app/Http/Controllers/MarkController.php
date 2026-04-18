@@ -58,6 +58,7 @@ class MarkController extends Controller
      */
     public function index(Request $request)
     {
+        $loggedInUser = auth()->user();
         $class_id = $request->query('class_id', 0);
         $section_id = $request->query('section_id', 0);
         $course_id = $request->query('course_id', 0);
@@ -70,7 +71,7 @@ class MarkController extends Controller
         $school_classes = $this->schoolClassRepository->getAllBySession($current_school_session_id);
 
         $markRepository = new MarkRepository();
-        $marks = $markRepository->getAllFinalMarks($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
+        $marks = $markRepository->getAllFinalMarks($current_school_session_id, $semester_id, $class_id, $section_id, $course_id, $loggedInUser->school_id);
 
         if(!$marks) {
             return abort(404);
@@ -124,6 +125,7 @@ class MarkController extends Controller
         $semester_id = $request->query('semester_id', 0);
         
         try{
+            $loggedInUser = auth()->user();
 
             $current_school_session_id = $this->getSchoolCurrentSession();
             $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
@@ -138,14 +140,14 @@ class MarkController extends Controller
                                             ->pluck('total_marks', 'exam_id');
 
             $markRepository = new MarkRepository();
-            $studentsWithMarks = $markRepository->getAll($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
+            $studentsWithMarks = $markRepository->getAll($current_school_session_id, $semester_id, $class_id, $section_id, $course_id, $loggedInUser->school_id);
             $studentsWithMarks = $studentsWithMarks->groupBy('student_id');
 
             $sectionStudents = $this->userRepository->getAllStudents($current_school_session_id, $class_id, $section_id);
 
             $final_marks_submitted = false;
             
-            $final_marks_submit_count = $markRepository->getFinalMarksCount($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
+            $final_marks_submit_count = $markRepository->getFinalMarksCount($current_school_session_id, $semester_id, $class_id, $section_id, $course_id, $loggedInUser->school_id);
 
             if($final_marks_submit_count > 0) {
                 $final_marks_submitted = true;
@@ -179,6 +181,7 @@ class MarkController extends Controller
      */
     public function showFinalMark(Request $request)
     {
+        $loggedInUser = auth()->user();
         $class_id = $request->query('class_id');
         $section_id = $request->query('section_id');
         $course_id = $request->query('course_id');
@@ -187,7 +190,7 @@ class MarkController extends Controller
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $markRepository = new MarkRepository();
-        $studentsWithMarks = $markRepository->getAll($current_school_session_id, $semester_id, $class_id, $section_id, $course_id);
+        $studentsWithMarks = $markRepository->getAll($current_school_session_id, $semester_id, $class_id, $section_id, $course_id, $loggedInUser->school_id);
         $studentsWithMarks = $studentsWithMarks->groupBy('student_id');
 
         $data = [
@@ -321,6 +324,7 @@ class MarkController extends Controller
      */
     public function showCourseMark(Request $request)
     {
+        $loggedInUser = auth()->user();
         $session_id = $request->query('session_id');
         $semester_id = $request->query('semester_id');
         $class_id = $request->query('class_id');
@@ -329,8 +333,8 @@ class MarkController extends Controller
         $course_name = $request->query('course_name');
         $student_id = $request->query('student_id');
         $markRepository = new MarkRepository();
-        $marks = $markRepository->getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id);
-        $finalMarks = $markRepository->getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id);
+        $marks = $markRepository->getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id, $loggedInUser->school_id);
+        $finalMarks = $markRepository->getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id, $loggedInUser->school_id);
 
         if(!$finalMarks) {
             return abort(404);

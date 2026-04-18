@@ -28,6 +28,7 @@ class AttendanceRepository implements AttendanceInterface {
                 'section_id'    => $request['section_id'],
                 'course_id'     => $request['course_id'],
                 'session_id'    => $request['session_id'],
+                'school_id'     => $request['school_id'] ?? null,
                 'created_at'    => $now,
                 'updated_at'    => $now,
             );
@@ -35,12 +36,15 @@ class AttendanceRepository implements AttendanceInterface {
         return $input;
     }
 
-    public function getSectionAttendance($class_id, $section_id, $session_id) {
+    public function getSectionAttendance($class_id, $section_id, $session_id, $schoolId = null) {
         try {
             return Attendance::with('student')
                             ->where('class_id', $class_id)
                             ->where('section_id', $section_id)
                             ->where('session_id', $session_id)
+                            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                                return $query->where('school_id', $schoolId);
+                            })
                             ->whereDate('created_at', '=', Carbon::today())
                             ->get();
         } catch (\Exception $e) {
@@ -48,12 +52,15 @@ class AttendanceRepository implements AttendanceInterface {
         }
     }
 
-    public function getCourseAttendance($class_id, $course_id, $session_id) {
+    public function getCourseAttendance($class_id, $course_id, $session_id, $schoolId = null) {
         try {
             return Attendance::with('student')
                             ->where('class_id', $class_id)
                             ->where('course_id', $course_id)
                             ->where('session_id', $session_id)
+                            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                                return $query->where('school_id', $schoolId);
+                            })
                             ->whereDate('created_at', '=', Carbon::today())
                             ->get();
         } catch (\Exception $e) {
@@ -61,11 +68,14 @@ class AttendanceRepository implements AttendanceInterface {
         }
     }
 
-    public function getStudentAttendance($session_id, $student_id) {
+    public function getStudentAttendance($session_id, $student_id, $schoolId = null) {
         try {
             return Attendance::with(['section','course'])
                             ->where('student_id', $student_id)
                             ->where('session_id', $session_id)
+                            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                                return $query->where('school_id', $schoolId);
+                            })
                             ->get();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get attendances. '.$e->getMessage());

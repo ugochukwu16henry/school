@@ -25,52 +25,79 @@ class MarkRepository implements MarkInterface {
         }
     }
 
-    public function getAll($session_id, $semester_id, $class_id, $section_id, $course_id) {
-        $exam_ids = Exam::where('semester_id', $semester_id)->pluck('id')->toArray();
+    public function getAll($session_id, $semester_id, $class_id, $section_id, $course_id, $schoolId = null) {
+        $exam_ids = Exam::where('semester_id', $semester_id)
+            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                return $query->where('school_id', $schoolId);
+            })
+            ->pluck('id')
+            ->toArray();
+
         return Mark::with('student','exam')->where('session_id', $session_id)
                     ->whereIn('exam_id', $exam_ids)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('course_id', $course_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get();
     }
 
-    public function getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id) {
-        $exam_ids = Exam::where('semester_id', $semester_id)->pluck('id')->toArray();
+    public function getAllByStudentId($session_id, $semester_id, $class_id, $section_id, $course_id, $student_id, $schoolId = null) {
+        $exam_ids = Exam::where('semester_id', $semester_id)
+            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                return $query->where('school_id', $schoolId);
+            })
+            ->pluck('id')
+            ->toArray();
+
         return Mark::with('student','exam')->where('session_id', $session_id)
                     ->whereIn('exam_id', $exam_ids)
                     ->where('student_id', $student_id)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('course_id', $course_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get();
     }
 
-    public function getFinalMarksCount($session_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getFinalMarksCount($session_id, $semester_id, $class_id, $section_id, $course_id, $schoolId = null) {
         return FinalMark::where('session_id', $session_id)
                     ->where('semester_id', $semester_id)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('course_id', $course_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->count();
     }
 
-    public function getAllFinalMarks($session_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getAllFinalMarks($session_id, $semester_id, $class_id, $section_id, $course_id, $schoolId = null) {
         return FinalMark::with('student')->where('session_id', $session_id)
                     ->where('semester_id', $semester_id)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('course_id', $course_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get();
     }
 
-    public function getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id) {
+    public function getAllFinalMarksByStudentId($session_id, $student_id, $semester_id, $class_id, $section_id, $course_id, $schoolId = null) {
         return FinalMark::with('student')->where('session_id', $session_id)
                     ->where('student_id', $student_id)
                     ->where('semester_id', $semester_id)
                     ->where('class_id', $class_id)
                     ->where('section_id', $section_id)
                     ->where('course_id', $course_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get();
     }
 
