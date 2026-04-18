@@ -16,7 +16,16 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $role = Auth::user()->role;
+        $user = Auth::user();
+        $role = $user->role;
+
+        if ($role === 'admin') {
+            $isSetupComplete = SchoolSession::where('school_id', $user->school_id)->exists();
+
+            if (!$isSetupComplete) {
+                return redirect()->route('school.setup.show');
+            }
+        }
 
         if ($role === 'super_admin') {
             return redirect()->route('dashboard.super-admin');

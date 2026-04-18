@@ -82,7 +82,7 @@ class SchoolSignupController extends Controller
         Auth::login($admin);
 
         return redirect()
-            ->route('dashboard.admin')
+            ->route('school.setup.show')
             ->with('success', 'School created successfully. Welcome to ' . $school->name . '.');
     }
 }

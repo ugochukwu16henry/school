@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\SchoolSignupController;
+use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -48,6 +49,9 @@ Route::post('/school/signup', [SchoolSignupController::class, 'store'])->name('s
 Auth::routes();
 
 Route::middleware(['auth', 'school.access'])->group(function () {
+
+    Route::get('/school/setup', [SchoolSetupController::class, 'show'])->middleware('role:admin')->name('school.setup.show');
+    Route::post('/school/setup', [SchoolSetupController::class, 'store'])->middleware('role:admin')->name('school.setup.store');
 
     Route::prefix('school')->name('school.')->group(function () {
         Route::post('session/create', [SchoolSessionController::class, 'store'])->name('session.store');
