@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use App\Models\User;
 use App\Models\Course;
 use App\Models\Section;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class AssignedTeacher extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
     /**
      * The attributes that are mass assignable.

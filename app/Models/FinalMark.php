@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class FinalMark extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
     protected $fillable = [
         'calculated_marks',

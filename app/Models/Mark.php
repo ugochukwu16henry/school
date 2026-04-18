@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use App\Models\Exam;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Mark extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
     protected $fillable = [
         'marks',

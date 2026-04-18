@@ -7,12 +7,13 @@ use App\Models\Section;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Concerns\HasSchoolScope;
 
 class SchoolClass extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
-    protected $fillable = ['class_name', 'session_id'];
+    protected $fillable = ['class_name', 'session_id', 'school_id'];
 
     /**
      * Get the sections for the class.

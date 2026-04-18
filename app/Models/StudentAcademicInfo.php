@@ -2,13 +2,14 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class StudentAcademicInfo extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
     /**
      * The attributes that are mass assignable.

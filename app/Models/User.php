@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use App\Models\Mark;
 use App\Models\School;
 use App\Models\StudentParentInfo;
@@ -14,7 +15,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 class User extends Authenticatable
 {
-    use HasRoles, HasFactory, Notifiable;
+    use HasRoles, HasFactory, Notifiable, HasSchoolScope;
 
     /**
      * The attributes that are mass assignable.

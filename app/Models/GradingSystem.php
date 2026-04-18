@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\HasSchoolScope;
 use App\Models\Semester;
 use App\Models\SchoolClass;
 use Illuminate\Database\Eloquent\Model;
@@ -9,13 +10,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class GradingSystem extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSchoolScope;
 
     protected $fillable = [
         'system_name',
         'class_id',
         'semester_id',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 
     public function semester() {
