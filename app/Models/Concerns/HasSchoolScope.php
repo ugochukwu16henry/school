@@ -2,6 +2,7 @@
 
 namespace App\Models\Concerns;
 
+use Illuminate\Auth\SessionGuard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
@@ -19,9 +20,9 @@ trait HasSchoolScope
             return null;
         }
 
-        $guard = auth();
+        $guard = auth()->guard();
 
-        if (!method_exists($guard, 'hasUser') || !$guard->hasUser()) {
+        if (!($guard instanceof SessionGuard) || !$guard->hasUser()) {
             return null;
         }
 
