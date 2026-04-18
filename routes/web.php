@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\DashboardController;
@@ -27,6 +26,11 @@ use App\Http\Controllers\GradingSystemController;
 use App\Http\Controllers\SchoolSessionController;
 use App\Http\Controllers\AcademicSettingController;
 use App\Http\Controllers\AssignedTeacherController;
+use App\Http\Controllers\Auth\ConfirmPasswordController;
+use App\Http\Controllers\Auth\ForgotPasswordController;
+use App\Http\Controllers\Auth\LoginController;
+use App\Http\Controllers\Auth\RegisterController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 use App\Http\Controllers\Auth\UpdatePasswordController;
 
 /*
@@ -49,7 +53,25 @@ Route::post('/school/signup', [SchoolSignupController::class, 'store'])->name('s
 Route::post('/billing/webhook/stripe', [BillingController::class, 'stripeWebhook'])->name('billing.webhook.stripe');
 Route::post('/billing/webhook/paystack', [BillingController::class, 'paystackWebhook'])->name('billing.webhook.paystack');
 
-Auth::routes();
+/*
+|--------------------------------------------------------------------------
+| Authentication routes (explicit — works without laravel/ui at runtime)
+|--------------------------------------------------------------------------
+*/
+Route::get('login', [LoginController::class, 'showLoginForm'])->name('login');
+Route::post('login', [LoginController::class, 'login']);
+Route::post('logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::get('register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+Route::post('register', [RegisterController::class, 'register']);
+
+Route::get('password/reset', [ForgotPasswordController::class, 'showLinkRequestForm'])->name('password.request');
+Route::post('password/email', [ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
+Route::get('password/reset/{token}', [ResetPasswordController::class, 'showResetForm'])->name('password.reset');
+Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('password.update');
+
+Route::get('password/confirm', [ConfirmPasswordController::class, 'showConfirmForm'])->name('password.confirm');
+Route::post('password/confirm', [ConfirmPasswordController::class, 'confirm']);
 
 Route::middleware(['auth', 'school.access'])->group(function () {
 
@@ -199,6 +221,6 @@ Route::middleware(['auth', 'school.access'])->group(function () {
 
     // Update password
     Route::get('password/edit', [UpdatePasswordController::class, 'edit'])->name('password.edit');
-    Route::post('password/edit', [UpdatePasswordController::class, 'update'])->name('password.update');
+    Route::post('password/edit', [UpdatePasswordController::class, 'update'])->name('user.password.update');
     });
 });

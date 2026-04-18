@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\School;
 use App\Providers\RouteServiceProvider;
 use App\Models\User;
 use Illuminate\Foundation\Auth\RegistersUsers;
@@ -64,10 +65,35 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+        $parts = preg_split('/\s+/', trim($data['name']), 2, PREG_SPLIT_NO_EMPTY);
+        $first = $parts[0] ?? 'User';
+        $last = $parts[1] ?? 'User';
+
+        $schoolId = School::where('slug', 'default-school')->value('id');
+        if (! $schoolId) {
+            $school = School::create([
+                'name' => 'Default School',
+                'slug' => 'default-school',
+                'status' => 'active',
+                'plan' => 'trial',
+            ]);
+            $schoolId = $school->id;
+        }
+
         return User::create([
-            'name' => $data['name'],
+            'first_name' => $first,
+            'last_name' => $last,
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
+            'gender' => 'Male',
+            'nationality' => 'Nigerian',
+            'phone' => '—',
+            'address' => '—',
+            'address2' => '—',
+            'city' => '—',
+            'zip' => '000000',
+            'role' => 'student',
+            'school_id' => $schoolId,
         ]);
     }
 }
