@@ -71,6 +71,11 @@
                         <p class="mb-2">
                             <a href="{{ route('school.signup.create') }}">Register your school</a>
                         </p>
+                        @if (Route::has('register'))
+                            <p class="mb-2">
+                                <a href="{{ route('register') }}">Create a student account</a>
+                            </p>
+                        @endif
                         <p class="mb-0">
                             <a href="{{ url('/') }}">Back to homepage</a>
                         </p>
