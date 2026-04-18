@@ -9,11 +9,16 @@
                     <h4 class="mb-0">Billing Setup</h4>
                 </div>
                 <div class="card-body">
+                    @php
+                        $freeLimit = (int) config('billing.free_student_limit', 50);
+                        $monthlyPerStudent = (int) config('billing.monthly_per_billable_student', 100);
+                        $activationPerStudent = (int) config('billing.activation_per_new_student', 500);
+                    @endphp
                     <p class="text-muted mb-2">Pricing (Fair-Growth Model)</p>
                     <ul class="small text-muted mb-4 ps-3">
-                        <li>Start free: first 50 students at N0. We grow when your enrolment grows across Africa.</li>
-                        <li>Monthly: N100 per billable student per month beyond the first 50.</li>
-                        <li>One-time activation: N500 per new student added beyond the first 50.</li>
+                        <li>Start free: first {{ $freeLimit }} students at N0. We grow when your enrolment grows across Africa.</li>
+                        <li>Monthly: N{{ number_format($monthlyPerStudent) }} per student per month after the first {{ $freeLimit }} students.</li>
+                        <li>One-time activation: N{{ number_format($activationPerStudent) }} for the 51st student and N{{ number_format($activationPerStudent) }} for every new student added after that.</li>
                         <li>No hidden fees: includes portal, parent and staff access, and ongoing updates.</li>
                     </ul>
 

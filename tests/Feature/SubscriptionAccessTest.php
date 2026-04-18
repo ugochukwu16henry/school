@@ -12,7 +12,7 @@ class SubscriptionAccessTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_admin_is_redirected_to_billing_when_subscription_is_past_due()
+    public function test_admin_with_past_due_subscription_can_enter_when_within_free_student_limit()
     {
         $school = $this->createSchool('past-due-school');
 
@@ -29,7 +29,7 @@ class SubscriptionAccessTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/home');
 
-        $response->assertRedirect(route('billing.setup.show'));
+        $response->assertRedirect(route('school.setup.show'));
     }
 
     public function test_admin_with_active_subscription_can_enter_protected_area()
@@ -52,7 +52,7 @@ class SubscriptionAccessTest extends TestCase
         $response->assertRedirect(route('school.setup.show'));
     }
 
-    public function test_expired_trial_is_converted_to_past_due_and_redirected_to_billing()
+    public function test_expired_trial_is_converted_to_past_due_and_still_allows_access_within_free_student_limit()
     {
         $school = $this->createSchool('expired-trial-school');
 
@@ -70,7 +70,7 @@ class SubscriptionAccessTest extends TestCase
 
         $response = $this->actingAs($admin)->get('/home');
 
-        $response->assertRedirect(route('billing.setup.show'));
+        $response->assertRedirect(route('school.setup.show'));
 
         $this->assertDatabaseHas('school_subscriptions', [
             'id' => $subscription->id,

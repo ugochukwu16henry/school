@@ -30,21 +30,27 @@ class EnsureActiveSubscription
                 ->with('error', 'School billing profile is missing.');
         }
 
-        $freeStudentLimit = (int) env('BILLING_FREE_STUDENT_LIMIT', 50);
-
-        if ($freeStudentLimit > 0) {
-            $studentCount = User::where('school_id', $user->school_id)
-                ->where('role', 'student')
-                ->count();
-
-            if ($studentCount <= $freeStudentLimit) {
-                return $next($request);
-            }
-        }
+        $freeStudentLimit = (int) config('billing.free_student_limit', 50);
+        $studentCount = User::where('school_id', $user->school_id)
+            ->where('role', 'student')
+            ->count();
 
         $subscription = SchoolSubscription::where('school_id', $user->school_id)
             ->latest('id')
             ->first();
+
+        if ($subscription && $subscription->status === 'trialing') {
+            if ($subscription->trial_ends_at && now()->gt($subscription->trial_ends_at)) {
+                $subscription->update(['status' => 'past_due']);
+                $subscription->refresh();
+            }
+        }
+
+        if ($freeStudentLimit > 0) {
+            if ($studentCount <= $freeStudentLimit) {
+                return $next($request);
+            }
+        }
 
         if (!$subscription) {
             return redirect()->route('billing.setup.show')
