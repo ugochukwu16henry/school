@@ -18,7 +18,8 @@ class Mark extends Model
         'section_id',
         'course_id',
         'exam_id',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 
     /**

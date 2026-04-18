@@ -14,6 +14,7 @@ class ExamRule extends Model
         'pass_marks',
         'marks_distribution_note',
         'exam_id',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 }

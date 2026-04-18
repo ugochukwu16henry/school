@@ -18,7 +18,8 @@ class Exam extends Model
         'semester_id',
         'class_id',
         'course_id',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 
     /**

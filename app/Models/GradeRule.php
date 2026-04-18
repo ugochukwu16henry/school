@@ -16,7 +16,8 @@ class GradeRule extends Model
         'start_at',
         'end_at',
         'grading_system_id',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 
     public function gradingSystem() {

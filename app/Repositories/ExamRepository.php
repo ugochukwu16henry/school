@@ -16,25 +16,50 @@ class ExamRepository implements ExamInterface {
         }
     }
 
-    public function delete($id) {
+    public function delete($id, $schoolId = null) {
         try {
-            Exam::destroy($id);
+            $query = Exam::where('id', $id);
+
+            if ($schoolId !== null) {
+                $query->where('school_id', $schoolId);
+            }
+
+            $query->delete();
         } catch (\Exception $e) {
             throw new \Exception('Failed to delete exam. '.$e->getMessage());
         }
     }
 
-    public function getAll($session_id, $semester_id, $class_id)
+    public function getAll($session_id, $semester_id, $class_id, $schoolId = null)
     {
         if($semester_id == 0 || $class_id == 0) {
-            $semester_id = Semester::where('session_id', $session_id)
-            ->first()->id;
-            $class_id = SchoolClass::where('session_id', $session_id)
-                                    ->first()->id;
+            $semester = Semester::where('session_id', $session_id)
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->first();
+
+            $schoolClass = SchoolClass::where('session_id', $session_id)
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->first();
+
+            if (!$semester || !$schoolClass) {
+                return collect();
+            }
+
+            $semester_id = $semester->id;
+            $class_id = $schoolClass->id;
         }
-        return Exam::with('course')->where('session_id', $session_id)
+
+        return Exam::with('course')
+                    ->where('session_id', $session_id)
                     ->where('semester_id', $semester_id)
                     ->where('class_id', $class_id)
+                    ->when($schoolId !== null, function ($query) use ($schoolId) {
+                        return $query->where('school_id', $schoolId);
+                    })
                     ->get();
     }
 }

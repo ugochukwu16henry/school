@@ -22,6 +22,7 @@ class Promotion extends Model
         'section_id',
         'session_id',
         'id_card_number',
+        'school_id',
     ];
 
     /**

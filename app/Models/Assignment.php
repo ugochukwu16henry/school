@@ -21,6 +21,7 @@ class Assignment extends Model
         'section_id',
         'course_id',
         'session_id',
+        'school_id',
         'assignment_name',
         'assignment_file_path'
     ];

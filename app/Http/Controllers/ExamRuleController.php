@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\ExamRuleStoreRequest;
+use App\Models\Exam;
 use App\Models\ExamRule;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
@@ -28,10 +29,11 @@ class ExamRuleController extends Controller
      */
     public function index(Request $request)
     {
+        $loggedInUser = auth()->user();
         $current_school_session_id = $this->getSchoolCurrentSession();
         $exam_id = $request->query('exam_id', 0);
         $examRuleRepository = new ExamRuleRepository();
-        $exam_rules = $examRuleRepository->getAll($current_school_session_id, $exam_id);
+        $exam_rules = $examRuleRepository->getAll($current_school_session_id, $exam_id, $loggedInUser->school_id);
 
         $data = [
             'exam_rules' => $exam_rules
@@ -47,8 +49,19 @@ class ExamRuleController extends Controller
      */
     public function create(Request $request)
     {
+        $loggedInUser = auth()->user();
         $current_school_session_id = $this->getSchoolCurrentSession();
         $exam_id = $request->query('exam_id');
+
+        if ($exam_id) {
+            $exam = Exam::where('id', $exam_id)
+                ->where('school_id', $loggedInUser->school_id)
+                ->first();
+
+            if (!$exam) {
+                return abort(404);
+            }
+        }
 
         $data = [
             'exam_id' => $exam_id,
@@ -67,8 +80,11 @@ class ExamRuleController extends Controller
     public function store(ExamRuleStoreRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $examRuleRepository = new ExamRuleRepository();
-            $examRuleRepository->create($request->validated());
+            $examRuleRepository->create($payload);
 
             return back()->with('status', 'Exam rule creation was successful!');
         } catch (\Exception $e) {
@@ -95,8 +111,14 @@ class ExamRuleController extends Controller
      */
     public function edit(Request $request)
     {
+        $loggedInUser = auth()->user();
         $examRuleRepository = new ExamRuleRepository();
-        $exam_rule = $examRuleRepository->getById($request->exam_rule_id);
+        $exam_rule = $examRuleRepository->getById($request->exam_rule_id, $loggedInUser->school_id);
+
+        if (!$exam_rule) {
+            return abort(404);
+        }
+
         $data = [
             'exam_rule_id'  => $request->exam_rule_id,
             'exam_rule'     => $exam_rule,
@@ -113,8 +135,9 @@ class ExamRuleController extends Controller
     public function update(Request $request)
     {
         try {
+            $loggedInUser = auth()->user();
             $examRuleRepository = new ExamRuleRepository();
-            $examRuleRepository->update($request);
+            $examRuleRepository->update($request, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
 
             return back()->with('status', 'Exam rule update was successful!');
         } catch (\Exception $e) {

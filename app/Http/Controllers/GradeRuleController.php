@@ -28,11 +28,12 @@ class GradeRuleController extends Controller
      */
     public function index(Request $request)
     {
+        $loggedInUser = auth()->user();
         $grading_system_id = $request->query('grading_system_id');
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $gradeRuleRepository = new GradeRuleRepository();
-        $gradeRules = $gradeRuleRepository->getAll($current_school_session_id, $grading_system_id);
+        $gradeRules = $gradeRuleRepository->getAll($current_school_session_id, $grading_system_id, $loggedInUser->school_id);
 
         return view('exams.grade.view-rules', compact('gradeRules'));
     }
@@ -59,8 +60,11 @@ class GradeRuleController extends Controller
     public function store(GradeRuleStoreRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $gradeRuleRepository = new GradeRuleRepository();
-            $gradeRuleRepository->store($request->validated());
+            $gradeRuleRepository->store($payload);
 
             return back()->with('status', 'Creating grading system rule was successful!');
         } catch (\Exception $e) {
@@ -111,8 +115,9 @@ class GradeRuleController extends Controller
     public function destroy(Request $request)
     {
         try {
+            $loggedInUser = auth()->user();
             $gradeRuleRepository = new GradeRuleRepository();
-            $gradeRuleRepository->delete($request->id);
+            $gradeRuleRepository->delete($request->id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
 
             return back()->with('status', 'Deleting grading system rule was successful!');
         } catch (\Exception $e) {

@@ -35,6 +35,7 @@ class ExamController extends Controller
      */
     public function index(Request $request)
     {
+        $loggedInUser = auth()->user();
         $class_id = $request->query('class_id', 0);
         $semester_id = $request->query('semester_id', 0);
 
@@ -46,7 +47,7 @@ class ExamController extends Controller
 
         $examRepository = new ExamRepository();
 
-        $exams = $examRepository->getAll($current_school_session_id, $semester_id, $class_id);
+        $exams = $examRepository->getAll($current_school_session_id, $semester_id, $class_id, $loggedInUser->school_id);
 
         $assignedTeacherRepository = new AssignedTeacherRepository();
 
@@ -109,8 +110,11 @@ class ExamController extends Controller
     public function store(ExamStoreRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $examRepository = new ExamRepository();
-            $examRepository->create($request->validated());
+            $examRepository->create($payload);
 
             return back()->with('status', 'Exam creation was successful!');
         } catch (\Exception $e) {
@@ -161,8 +165,19 @@ class ExamController extends Controller
     public function destroy(Request $request)
     {
         try {
+            $loggedInUser = auth()->user();
+            $exam = Exam::find($request->exam_id);
+
+            if (!$exam) {
+                return abort(404);
+            }
+
+            if ($loggedInUser->role !== 'super_admin' && (int) $exam->school_id !== (int) $loggedInUser->school_id) {
+                return abort(403, 'You cannot delete exams across schools.');
+            }
+
             $examRepository = new ExamRepository();
-            $examRepository->delete($request->exam_id);
+            $examRepository->delete($request->exam_id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
 
             return back()->with('status', 'Exam deletion was successful!');
         } catch (\Exception $e) {
