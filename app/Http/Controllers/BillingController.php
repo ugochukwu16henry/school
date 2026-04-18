@@ -35,7 +35,7 @@ class BillingController extends Controller
     public function startCheckout(Request $request)
     {
         $validated = $request->validate([
-            'plan' => ['required', 'in:starter,growth,enterprise'],
+            'plan' => ['required', 'in:fair_growth,starter,growth,enterprise'],
             'provider' => ['required', 'in:stripe,paystack'],
         ]);
 

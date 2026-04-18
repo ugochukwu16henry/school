@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\SchoolSubscription;
+use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
 
@@ -27,6 +28,18 @@ class EnsureActiveSubscription
         if (!$user->school_id) {
             return redirect()->route('billing.setup.show')
                 ->with('error', 'School billing profile is missing.');
+        }
+
+        $freeStudentLimit = (int) env('BILLING_FREE_STUDENT_LIMIT', 50);
+
+        if ($freeStudentLimit > 0) {
+            $studentCount = User::where('school_id', $user->school_id)
+                ->where('role', 'student')
+                ->count();
+
+            if ($studentCount <= $freeStudentLimit) {
+                return $next($request);
+            }
         }
 
         $subscription = SchoolSubscription::where('school_id', $user->school_id)

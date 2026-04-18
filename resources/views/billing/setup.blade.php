@@ -9,7 +9,13 @@
                     <h4 class="mb-0">Billing Setup</h4>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Choose your plan and payment provider to continue beyond trial.</p>
+                    <p class="text-muted mb-2">Pricing (Fair-Growth Model)</p>
+                    <ul class="small text-muted mb-4 ps-3">
+                        <li>Start free: first 50 students at N0. We grow when your enrolment grows across Africa.</li>
+                        <li>Monthly: N100 per billable student per month beyond the first 50.</li>
+                        <li>One-time activation: N500 per new student added beyond the first 50.</li>
+                        <li>No hidden fees: includes portal, parent and staff access, and ongoing updates.</li>
+                    </ul>
 
                     @if(session('success'))
                         <div class="alert alert-success">{{ session('success') }}</div>
@@ -37,9 +43,7 @@
                             <div class="col-md-6">
                                 <label for="plan" class="form-label">Plan</label>
                                 <select id="plan" name="plan" class="form-select @error('plan') is-invalid @enderror" required>
-                                    <option value="starter" {{ old('plan', $subscription->plan) === 'starter' ? 'selected' : '' }}>Starter</option>
-                                    <option value="growth" {{ old('plan', $subscription->plan) === 'growth' ? 'selected' : '' }}>Growth</option>
-                                    <option value="enterprise" {{ old('plan', $subscription->plan) === 'enterprise' ? 'selected' : '' }}>Enterprise</option>
+                                    <option value="fair_growth" {{ old('plan', $subscription->plan) === 'fair_growth' ? 'selected' : '' }}>Fair-Growth</option>
                                 </select>
                                 @error('plan')<div class="invalid-feedback">{{ $message }}</div>@enderror
                             </div>

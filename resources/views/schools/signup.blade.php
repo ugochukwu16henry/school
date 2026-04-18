@@ -9,7 +9,7 @@
                     <h4 class="mb-0">Create Your School Account</h4>
                 </div>
                 <div class="card-body">
-                    <p class="text-muted">Start your school workspace with a free trial.</p>
+                    <p class="text-muted">Start free for your first 50 students, then pay only as enrollment grows.</p>
 
                     <form method="POST" action="{{ route('school.signup.store') }}">
                         @csrf

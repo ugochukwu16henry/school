@@ -87,6 +87,54 @@ class SubscriptionAccessTest extends TestCase
         $response->assertRedirect(route('dashboard.super-admin'));
     }
 
+    public function test_admin_with_non_active_subscription_can_enter_when_school_has_50_or_fewer_students()
+    {
+        $school = $this->createSchool('free-tier-50');
+
+        SchoolSubscription::create([
+            'school_id' => $school->id,
+            'plan' => 'fair_growth',
+            'status' => 'past_due',
+            'provider' => 'stripe',
+            'provider_reference' => 'STRIPE-FREE-TIER-50',
+            'starts_at' => now(),
+        ]);
+
+        $admin = $this->createUser('admin', $school->id);
+        User::factory()->count(50)->create([
+            'role' => 'student',
+            'school_id' => $school->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/home');
+
+        $response->assertRedirect(route('school.setup.show'));
+    }
+
+    public function test_admin_with_non_active_subscription_is_redirected_when_school_has_more_than_50_students()
+    {
+        $school = $this->createSchool('free-tier-51');
+
+        SchoolSubscription::create([
+            'school_id' => $school->id,
+            'plan' => 'fair_growth',
+            'status' => 'past_due',
+            'provider' => 'stripe',
+            'provider_reference' => 'STRIPE-FREE-TIER-51',
+            'starts_at' => now(),
+        ]);
+
+        $admin = $this->createUser('admin', $school->id);
+        User::factory()->count(51)->create([
+            'role' => 'student',
+            'school_id' => $school->id,
+        ]);
+
+        $response = $this->actingAs($admin)->get('/home');
+
+        $response->assertRedirect(route('billing.setup.show'));
+    }
+
     private function createSchool(string $slug): School
     {
         $uniqueSlug = $slug . '-' . uniqid();
