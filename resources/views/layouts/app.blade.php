@@ -32,8 +32,9 @@
     <div id="app">
         <nav class="navbar sticky-top navbar-expand-md navbar-light bg-white border-btm-e6">
             <div class="container">
-                <a class="navbar-brand" href="{{ url('/') }}">
-                    <i class="bi bi-house"></i> {{ config('app.name', 'Laravel') }}
+                <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url('/') }}">
+                    <img src="{{ asset('favicon_io/android-chrome-192x192.png') }}" width="32" height="32" alt="" class="flex-shrink-0">
+                    <span>{{ config('app.name', 'School') }}</span>
                 </a>
                 <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
                     <span class="navbar-toggler-icon"></span>
