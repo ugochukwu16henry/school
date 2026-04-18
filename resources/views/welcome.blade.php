@@ -472,6 +472,26 @@
             </div>
         </section>
 
+        <section class="section" id="gateway">
+            <div class="container card-grid">
+                <article class="panel">
+                    <h3>Register Gateway</h3>
+                    <p class="muted">New school owners can create a secure school workspace in minutes.</p>
+                    <a class="btn primary" href="{{ route('school.signup.create') }}">Register your school</a>
+                </article>
+                <article class="panel">
+                    <h3>Sign-in Gateway</h3>
+                    <p class="muted">Existing admins, teachers, parents and students can sign in from one secure entry point.</p>
+                    <a class="btn" href="{{ route('login') }}">Go to sign in</a>
+                </article>
+                <article class="panel">
+                    <h3>Need onboarding support?</h3>
+                    <p class="muted">If you need help setting up your first school account, chat with our team and we will guide you end-to-end.</p>
+                    <a class="btn" href="https://wa.me/2340000000000" target="_blank" rel="noopener noreferrer">Talk to onboarding</a>
+                </article>
+            </div>
+        </section>
+
         <section class="section">
             <div class="container">
                 <h2>One platform, three superpowers</h2>
