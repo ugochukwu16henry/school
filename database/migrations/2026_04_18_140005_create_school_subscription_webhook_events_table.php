@@ -15,7 +15,7 @@ class CreateSchoolSubscriptionWebhookEventsTable extends Migration
     {
         Schema::create('school_subscription_webhook_events', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('school_subscription_id')->nullable()->constrained('school_subscriptions')->nullOnDelete();
+            $table->unsignedBigInteger('school_subscription_id')->nullable();
             $table->string('provider');
             $table->string('event_type')->nullable();
             $table->string('provider_reference')->nullable()->index();
@@ -25,6 +25,10 @@ class CreateSchoolSubscriptionWebhookEventsTable extends Migration
             $table->timestamp('processed_at')->nullable();
             $table->timestamps();
 
+            $table->foreign('school_subscription_id', 'sswe_subscription_fk')
+                ->references('id')
+                ->on('school_subscriptions')
+                ->nullOnDelete();
             $table->index(['provider', 'event_type']);
         });
     }
