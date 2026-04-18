@@ -11,6 +11,7 @@ class Notice extends Model
 
     protected $fillable = [
         'notice',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 }

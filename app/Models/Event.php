@@ -13,6 +13,7 @@ class Event extends Model
         'title', 
         'start', 
         'end',
-        'session_id'
+        'session_id',
+        'school_id',
     ];
 }

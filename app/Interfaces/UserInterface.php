@@ -17,11 +17,11 @@ interface UserInterface {
 
     public function getAllStudentsBySessionCount($session_id);
 
-    public function findStudent($id);
+    public function findStudent($id, $schoolId = null);
 
-    public function findTeacher($id);
+    public function findTeacher($id, $schoolId = null);
 
-    public function getAllTeachers();
+    public function getAllTeachers($schoolId = null);
 
     public function changePassword($new_password);
 }

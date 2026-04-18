@@ -15,18 +15,27 @@ class SyllabusRepository {
                 'syllabus_file_path'      => $path,
                 'class_id'                => $request['class_id'],
                 'course_id'               => $request['course_id'],
-                'session_id'              => $request['session_id']
+                'session_id'              => $request['session_id'],
+                'school_id'               => $request['school_id'] ?? null,
             ]);
         } catch (\Exception $e) {
             throw new \Exception('Failed to create syllabus. '.$e->getMessage());
         }
     }
 
-    public function getByClass($class_id) {
-        return Syllabus::where('class_id', $class_id)->get();
+    public function getByClass($class_id, $schoolId = null) {
+        return Syllabus::where('class_id', $class_id)
+            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                return $query->where('school_id', $schoolId);
+            })
+            ->get();
     }
 
-    public function getByCourse($course_id) {
-        return Syllabus::where('course_id', $course_id)->get();
+    public function getByCourse($course_id, $schoolId = null) {
+        return Syllabus::where('course_id', $course_id)
+            ->when($schoolId !== null, function ($query) use ($schoolId) {
+                return $query->where('school_id', $schoolId);
+            })
+            ->get();
     }
 }

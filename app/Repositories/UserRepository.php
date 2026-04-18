@@ -35,6 +35,7 @@ class UserRepository implements UserInterface {
                     'city'          => $request['city'],
                     'zip'           => $request['zip'],
                     'photo'         => (!empty($request['photo']))?$this->convert($request['photo']):null,
+                    'school_id'     => $request['school_id'] ?? null,
                     'role'          => 'teacher',
                     'password'      => Hash::make($request['password']),
                 ]);
@@ -84,6 +85,7 @@ class UserRepository implements UserInterface {
                     'birthday'      => $request['birthday'],
                     'religion'      => $request['religion'],
                     'blood_type'    => $request['blood_type'],
+                    'school_id'     => $request['school_id'] ?? null,
                     'role'          => 'student',
                     'password'      => Hash::make($request['password']),
                 ]);
@@ -203,25 +205,39 @@ class UserRepository implements UserInterface {
         return $promotionRepository->getAllStudentsBySessionCount($session_id);
     }
 
-    public function findStudent($id) {
+    public function findStudent($id, $schoolId = null) {
         try {
-            return User::with('parent_info', 'academic_info')->where('id', $id)->first();
+            return User::with('parent_info', 'academic_info')
+                ->where('id', $id)
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->first();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get Student. '.$e->getMessage());
         }
     }
 
-    public function findTeacher($id) {
+    public function findTeacher($id, $schoolId = null) {
         try {
-            return User::where('id', $id)->where('role', 'teacher')->first();
+            return User::where('id', $id)
+                ->where('role', 'teacher')
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->first();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get Teacher. '.$e->getMessage());
         }
     }
 
-    public function getAllTeachers() {
+    public function getAllTeachers($schoolId = null) {
         try {
-            return User::where('role', 'teacher')->get();
+            return User::where('role', 'teacher')
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->get();
         } catch (\Exception $e) {
             throw new \Exception('Failed to get all Teachers. '.$e->getMessage());
         }

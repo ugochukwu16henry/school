@@ -32,9 +32,10 @@ class SyllabusController extends Controller
      */
     public function index(Request $request)
     {
+        $loggedInUser = auth()->user();
         $course_id = $request->query('course_id', 0);
         $syllabusRepository = new SyllabusRepository();
-        $syllabi = $syllabusRepository->getByCourse($course_id);
+        $syllabi = $syllabusRepository->getByCourse($course_id, $loggedInUser->school_id);
 
         $data = [
             'syllabi'   => $syllabi
@@ -74,6 +75,7 @@ class SyllabusController extends Controller
         $validatedRequest['course_id'] = $request->course_id;
         $validatedRequest['syllabus_name'] = $request->syllabus_name;
         $validatedRequest['session_id'] = $this->getSchoolCurrentSession();
+        $validatedRequest['school_id'] = auth()->user()->school_id;
 
         try {
             $syllabusRepository = new SyllabusRepository();

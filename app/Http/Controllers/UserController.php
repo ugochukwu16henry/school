@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
 use App\Interfaces\UserInterface;
@@ -43,7 +44,10 @@ class UserController extends Controller
     public function storeTeacher(TeacherStoreRequest $request)
     {
         try {
-            $this->userRepository->createTeacher($request->validated());
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
+            $this->userRepository->createTeacher($payload);
 
             return back()->with('status', 'Teacher creation was successful!');
         } catch (\Exception $e) {
@@ -76,7 +80,12 @@ class UserController extends Controller
 
 
     public function showStudentProfile($id) {
-        $student = $this->userRepository->findStudent($id);
+        $loggedInUser = auth()->user();
+        $student = $this->userRepository->findStudent($id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
+
+        if (!$student) {
+            return abort(404);
+        }
 
         $current_school_session_id = $this->getSchoolCurrentSession();
         $promotionRepository = new PromotionRepository();
@@ -91,7 +100,13 @@ class UserController extends Controller
     }
 
     public function showTeacherProfile($id) {
-        $teacher = $this->userRepository->findTeacher($id);
+        $loggedInUser = auth()->user();
+        $teacher = $this->userRepository->findTeacher($id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
+
+        if (!$teacher) {
+            return abort(404);
+        }
+
         $data = [
             'teacher'   => $teacher,
         ];
@@ -121,7 +136,10 @@ class UserController extends Controller
     public function storeStudent(StudentStoreRequest $request)
     {
         try {
-            $this->userRepository->createStudent($request->validated());
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
+            $this->userRepository->createStudent($payload);
 
             return back()->with('status', 'Student creation was successful!');
         } catch (\Exception $e) {
@@ -130,7 +148,13 @@ class UserController extends Controller
     }
 
     public function editStudent($student_id) {
-        $student = $this->userRepository->findStudent($student_id);
+        $loggedInUser = auth()->user();
+        $student = $this->userRepository->findStudent($student_id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
+
+        if (!$student) {
+            return abort(404);
+        }
+
         $studentParentInfoRepository = new StudentParentInfoRepository();
         $parent_info = $studentParentInfoRepository->getParentInfo($student_id);
         $promotionRepository = new PromotionRepository();
@@ -147,6 +171,17 @@ class UserController extends Controller
 
     public function updateStudent(Request $request) {
         try {
+            $loggedInUser = auth()->user();
+            $student = User::find($request->student_id);
+
+            if (!$student) {
+                return abort(404);
+            }
+
+            if ($loggedInUser->role !== 'super_admin' && (int) $student->school_id !== (int) $loggedInUser->school_id) {
+                return abort(403, 'You cannot update students across schools.');
+            }
+
             $this->userRepository->updateStudent($request->toArray());
 
             return back()->with('status', 'Student update was successful!');
@@ -156,7 +191,12 @@ class UserController extends Controller
     }
 
     public function editTeacher($teacher_id) {
-        $teacher = $this->userRepository->findTeacher($teacher_id);
+        $loggedInUser = auth()->user();
+        $teacher = $this->userRepository->findTeacher($teacher_id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
+
+        if (!$teacher) {
+            return abort(404);
+        }
 
         $data = [
             'teacher'   => $teacher,
@@ -166,6 +206,17 @@ class UserController extends Controller
     }
     public function updateTeacher(Request $request) {
         try {
+            $loggedInUser = auth()->user();
+            $teacher = User::where('id', $request->teacher_id)->where('role', 'teacher')->first();
+
+            if (!$teacher) {
+                return abort(404);
+            }
+
+            if ($loggedInUser->role !== 'super_admin' && (int) $teacher->school_id !== (int) $loggedInUser->school_id) {
+                return abort(403, 'You cannot update teachers across schools.');
+            }
+
             $this->userRepository->updateTeacher($request->toArray());
 
             return back()->with('status', 'Teacher update was successful!');
@@ -175,7 +226,8 @@ class UserController extends Controller
     }
 
     public function getTeacherList(){
-        $teachers = $this->userRepository->getAllTeachers();
+        $loggedInUser = auth()->user();
+        $teachers = $this->userRepository->getAllTeachers($loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
 
         $data = [
             'teachers' => $teachers,

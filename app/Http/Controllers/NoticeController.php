@@ -49,8 +49,11 @@ class NoticeController extends Controller
     public function store(NoticeStoreRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $noticeRepository = new NoticeRepository();
-            $noticeRepository->store($request->validated());
+            $noticeRepository->store($payload);
 
             return back()->with('status', 'Creating Notice was successful!');
         } catch (\Exception $e) {
