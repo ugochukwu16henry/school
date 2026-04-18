@@ -83,6 +83,7 @@ class PromotionController extends Controller
      */
     public function create(Request $request)
     {
+        $loggedInUser = auth()->user();
         $class_id = $request->query('previous_class_id');
         $section_id = $request->query('previous_section_id');
         $session_id = $request->query('previousSessionId');
@@ -97,6 +98,14 @@ class PromotionController extends Controller
 
             $schoolClass = $this->schoolClassRepository->findById($class_id);
             $section = $this->schoolSectionRepository->findById($section_id);
+
+            if (!$schoolClass || !$section) {
+                return abort(404);
+            }
+
+            if ($loggedInUser->role !== 'super_admin' && ((int) $schoolClass->school_id !== (int) $loggedInUser->school_id || (int) $section->school_id !== (int) $loggedInUser->school_id)) {
+                return abort(403, 'You cannot promote students across schools.');
+            }
 
             $latest_school_session = $this->schoolSessionRepository->getLatestSession();
 
@@ -123,6 +132,7 @@ class PromotionController extends Controller
      */
     public function store(Request $request)
     {
+        $loggedInUser = auth()->user();
         $id_card_numbers = $request->id_card_number;
         $latest_school_session = $this->schoolSessionRepository->getLatestSession();
 
@@ -135,6 +145,7 @@ class PromotionController extends Controller
                 'class_id'      => $request->class_id[$i],
                 'section_id'    => $request->section_id[$i],
                 'session_id'    => $latest_school_session->id,
+                'school_id'     => $loggedInUser->school_id,
             ];
             array_push($rows, $row);
             $i++;

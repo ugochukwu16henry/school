@@ -213,6 +213,7 @@ class MarkController extends Controller
      */
     public function store(Request $request)
     {
+        $loggedInUser = auth()->user();
         $current_school_session_id = $this->getSchoolCurrentSession();
         $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
 
@@ -261,6 +262,7 @@ class MarkController extends Controller
                 $row['course_id'] = $request->course_id;
                 $row['session_id'] = $request->session_id;
                 $row['exam_id'] = $exam;
+                $row['school_id'] = $loggedInUser->school_id;
 
                 $rows[] = $row;
             }
@@ -282,6 +284,7 @@ class MarkController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function storeFinalMark(Request $request) {
+        $loggedInUser = auth()->user();
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $this->checkIfLoggedInUserIsAssignedTeacher($request, $current_school_session_id);
@@ -297,6 +300,7 @@ class MarkController extends Controller
                 $row['course_id'] = $request->course_id;
                 $row['session_id'] = $request->session_id;
                 $row['semester_id'] = $request->semester_id;
+                $row['school_id'] = $loggedInUser->school_id;
 
                 $rows[] = $row;
         }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Attendance;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Interfaces\UserInterface;
 use App\Interfaces\SchoolClassInterface;
@@ -120,8 +121,11 @@ class AttendanceController extends Controller
     public function store(AttendanceStoreRequest $request)
     {
         try {
+            $validated = $request->validated();
+            $validated['school_id'] = auth()->user()->school_id;
+
             $attendanceRepository = new AttendanceRepository();
-            $attendanceRepository->saveAttendance($request->validated());
+            $attendanceRepository->saveAttendance($validated);
 
             return back()->with('status', 'Attendance save was successful!');
         } catch (\Exception $e) {
@@ -168,6 +172,18 @@ class AttendanceController extends Controller
         if(auth()->user()->role == "student" && auth()->user()->id != $id) {
             return abort(404);
         }
+
+        $loggedInUser = auth()->user();
+        $studentUser = User::find($id);
+
+        if (!$studentUser) {
+            return abort(404);
+        }
+
+        if ($loggedInUser->role !== 'super_admin' && $studentUser->school_id !== $loggedInUser->school_id) {
+            return abort(403, 'You cannot access attendance across schools.');
+        }
+
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $attendanceRepository = new AttendanceRepository();

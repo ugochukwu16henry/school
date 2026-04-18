@@ -73,6 +73,7 @@ class AssignmentController extends Controller
         $validatedRequest['semester_id'] = $request->semester_id;
         $validatedRequest['assignment_name'] = $request->assignment_name;
         $validatedRequest['session_id'] = $this->getSchoolCurrentSession();
+        $validatedRequest['school_id'] = auth()->user()->school_id;
 
         try {
             $assignmentRepository = new AssignmentRepository();
