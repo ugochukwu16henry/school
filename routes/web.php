@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\SchoolSignupController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -40,6 +41,9 @@ use App\Http\Controllers\Auth\UpdatePasswordController;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/school/signup', [SchoolSignupController::class, 'create'])->name('school.signup.create');
+Route::post('/school/signup', [SchoolSignupController::class, 'store'])->name('school.signup.store');
 
 Auth::routes();
 

@@ -34,6 +34,7 @@
                     @auth
                         <a href="{{ url('/home') }}" class="text-sm text-gray-700 underline">Home</a>
                     @else
+                        <a href="{{ route('school.signup.create') }}" class="text-gray-900 dark:text-white" style="border: 1px solid #1a202c;padding: 5px;border-radius: 5px; margin-right: 8px;">Start School</a>
                         <a href="{{ route('login') }}" class="text-gray-900 dark:text-white" style="border: 1px solid #1a202c;padding: 5px;border-radius: 5px;">Login</a>
 
                         {{-- @if (Route::has('register'))
