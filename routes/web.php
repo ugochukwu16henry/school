@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ExamController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MarkController;
 use App\Http\Controllers\UserController;
@@ -76,7 +77,15 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/home', [DashboardController::class, 'index'])->name('home');
+
+    Route::prefix('dashboard')->name('dashboard.')->group(function () {
+        Route::get('/admin', [HomeController::class, 'index'])->middleware('role:admin')->name('admin');
+        Route::get('/super-admin', [DashboardController::class, 'superAdmin'])->middleware('role:super_admin')->name('super-admin');
+        Route::get('/teacher', [DashboardController::class, 'teacher'])->middleware('role:teacher')->name('teacher');
+        Route::get('/student', [DashboardController::class, 'student'])->middleware('role:student')->name('student');
+        Route::get('/parent', [DashboardController::class, 'parent'])->middleware('role:parent')->name('parent');
+    });
 
     // Attendance
     Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendance.index');
