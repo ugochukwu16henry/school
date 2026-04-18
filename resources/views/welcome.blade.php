@@ -37,6 +37,10 @@
 
         * { box-sizing: border-box; }
         html, body { margin: 0; padding: 0; }
+        html { scroll-behavior: smooth; }
+        /* Sticky topbar would cover #gateway and other anchors without offset */
+        section[id] { scroll-margin-top: 88px; }
+
         body {
             font-family: Manrope, sans-serif;
             background: radial-gradient(circle at 10% 0%, #e8f8f1 0%, var(--bg) 35%), var(--bg);
@@ -102,6 +106,10 @@
             align-items: center;
             flex-wrap: wrap;
             justify-content: flex-end;
+        }
+
+        .nav-actions a.btn {
+            flex-shrink: 0;
         }
 
         .btn {
@@ -409,6 +417,10 @@
     </style>
 </head>
 <body>
+    @php
+        $loginUrl = url('/login');
+        $schoolSignupUrl = url('/school/signup');
+    @endphp
     <header class="topbar">
         <div class="container topbar-inner">
             <a class="brand" href="{{ url('/') }}">RiseFlow</a>
@@ -421,8 +433,8 @@
             </nav>
             <div class="nav-actions">
                 <button id="theme-toggle" class="btn" type="button" aria-label="Toggle night view">🌙 Night view</button>
-                <a class="btn" href="{{ route('login') }}">Log in</a>
-                <a class="btn primary" href="{{ route('school.signup.create') }}">Register your school</a>
+                <a class="btn" href="{{ $loginUrl }}">Log in</a>
+                <a class="btn primary" href="{{ $schoolSignupUrl }}">Register your school</a>
             </div>
         </div>
     </header>
@@ -438,8 +450,8 @@
                         Built for Nigerian and African schools.
                     </p>
                     <div class="hero-actions">
-                        <a class="btn primary" href="{{ route('school.signup.create') }}">Register your school in 5 minutes</a>
-                        <a class="btn" href="{{ route('login') }}">Already using RiseFlow? Log in</a>
+                        <a class="btn primary" href="{{ $schoolSignupUrl }}">Register your school in 5 minutes</a>
+                        <a class="btn" href="{{ $loginUrl }}">Already using RiseFlow? Log in</a>
                     </div>
                     <ul class="hero-bullets">
                         <li>First 50 students free after you register your school</li>
@@ -483,12 +495,12 @@
                 <article class="panel">
                     <h3>Register Gateway</h3>
                     <p class="muted">New school owners can create a secure school workspace in minutes.</p>
-                    <a class="btn primary" href="{{ route('school.signup.create') }}">Register your school</a>
+                    <a class="btn primary" href="{{ $schoolSignupUrl }}">Register your school</a>
                 </article>
                 <article class="panel">
                     <h3>Sign-in Gateway</h3>
                     <p class="muted">Existing admins, teachers, parents and students can sign in from one secure entry point.</p>
-                    <a class="btn" href="{{ route('login') }}">Go to sign in</a>
+                    <a class="btn" href="{{ $loginUrl }}">Log in</a>
                 </article>
                 <article class="panel">
                     <h3>Need onboarding support?</h3>
