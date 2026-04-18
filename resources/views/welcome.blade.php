@@ -77,6 +77,11 @@
             letter-spacing: 0.02em;
         }
 
+        a.brand {
+            text-decoration: none;
+            color: inherit;
+        }
+
         .nav-links {
             display: flex;
             gap: 18px;
@@ -406,11 +411,12 @@
 <body>
     <header class="topbar">
         <div class="container topbar-inner">
-            <div class="brand">RiseFlow</div>
+            <a class="brand" href="{{ url('/') }}">RiseFlow</a>
             <nav class="nav-links" aria-label="Main Navigation">
                 <a href="#how-it-works">How it works</a>
                 <a href="#pricing">Pricing</a>
                 <a href="#compare">Compare</a>
+                <a href="#gateway">Gateway</a>
                 <a href="#affiliate">Affiliate program</a>
             </nav>
             <div class="nav-actions">

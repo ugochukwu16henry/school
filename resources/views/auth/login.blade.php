@@ -65,6 +65,16 @@
                             </div>
                         </div>
                     </form>
+
+                    <div class="border-top pt-3 mt-3 text-center small">
+                        <p class="mb-1 text-muted">New school?</p>
+                        <p class="mb-2">
+                            <a href="{{ route('school.signup.create') }}">Register your school</a>
+                        </p>
+                        <p class="mb-0">
+                            <a href="{{ url('/') }}">Back to homepage</a>
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>
