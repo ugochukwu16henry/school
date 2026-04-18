@@ -10,14 +10,28 @@ trait HasSchoolScope
 {
     protected static $schoolColumnCache = [];
 
+    /**
+     * Read the already-resolved auth user without triggering a provider lookup.
+     */
+    protected static function resolvedAuthUser()
+    {
+        if (!app()->bound('auth')) {
+            return null;
+        }
+
+        $guard = auth();
+
+        if (!method_exists($guard, 'hasUser') || !$guard->hasUser()) {
+            return null;
+        }
+
+        return $guard->user();
+    }
+
     protected static function bootHasSchoolScope()
     {
         static::addGlobalScope('school_scope', function (Builder $builder) {
-            if (!app()->bound('auth') || !auth()->check()) {
-                return;
-            }
-
-            $user = auth()->user();
+            $user = static::resolvedAuthUser();
 
             if (!$user || $user->role === 'super_admin') {
                 return;
@@ -33,11 +47,7 @@ trait HasSchoolScope
         });
 
         static::creating(function (Model $model) {
-            if (!app()->bound('auth') || !auth()->check()) {
-                return;
-            }
-
-            $user = auth()->user();
+            $user = static::resolvedAuthUser();
 
             if (!$user || $user->role === 'super_admin') {
                 return;
