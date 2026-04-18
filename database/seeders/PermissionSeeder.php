@@ -16,6 +16,9 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
+        $adminEmail = env('SCHOOL_ADMIN_EMAIL', 'admin@school.local');
+        $adminPassword = env('SCHOOL_ADMIN_PASSWORD', 'password');
+
         // Reset cached roles and permissions
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
@@ -100,12 +103,22 @@ class PermissionSeeder extends Seeder
         Permission::create(['name' => 'edit sections']);
         // Permission::create(['name' => 'delete sections']);
 
-        $user = \App\Models\User::factory()->create([
-            'email' => 'ugochukwuhenry16@gmail.com',
-            'password' => Hash::make('1995Mobuchi@'),
-            'first_name' => 'Admin',
-            'last_name' => 'User'
-        ]);
+        $user = \App\Models\User::updateOrCreate(
+            ['email' => $adminEmail],
+            [
+                'password' => Hash::make($adminPassword),
+                'first_name' => 'Admin',
+                'last_name' => 'User',
+                'gender' => 'Male',
+                'nationality' => 'Nigerian',
+                'phone' => '1111111111',
+                'address' => 'School HQ',
+                'address2' => 'Main Campus',
+                'city' => 'Lagos',
+                'zip' => '100001',
+                'role' => 'admin',
+            ]
+        );
         $user->givePermissionTo(
             'create school sessions',
             'update browse by session',

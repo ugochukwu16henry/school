@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\Mark;
+use App\Models\School;
 use App\Models\StudentParentInfo;
 use App\Models\StudentAcademicInfo;
 use Spatie\Permission\Traits\HasRoles;
@@ -37,6 +38,7 @@ class User extends Authenticatable
         'religion',
         'blood_type',
         'role',
+        'school_id',
     ];
 
     /**
@@ -80,5 +82,13 @@ class User extends Authenticatable
     public function marks()
     {
         return $this->hasMany(Mark::class, 'student_id', 'id');
+    }
+
+    /**
+     * Get the school for the user.
+     */
+    public function school()
+    {
+        return $this->belongsTo(School::class);
     }
 }

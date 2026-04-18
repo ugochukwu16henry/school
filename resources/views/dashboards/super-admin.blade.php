@@ -11,6 +11,9 @@
 
     <div class="row g-3 mb-4">
         <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Total Schools</h6><h3>{{ $schoolCount }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
             <div class="card h-100"><div class="card-body"><h6 class="text-muted">Total Users</h6><h3>{{ $userCount }}</h3></div></div>
         </div>
         <div class="col-md-4">

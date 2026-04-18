@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Course;
 use App\Models\FinalMark;
 use App\Models\Promotion;
+use App\Models\School;
 use App\Models\SchoolSession;
 use App\Models\AssignedTeacher;
 use App\Models\StudentParentInfo;
@@ -39,6 +40,7 @@ class DashboardController extends Controller
     public function superAdmin()
     {
         $stats = [
+            'schoolCount' => School::count(),
             'userCount' => User::count(),
             'adminCount' => User::where('role', 'admin')->count(),
             'teacherCount' => User::where('role', 'teacher')->count(),
@@ -53,9 +55,11 @@ class DashboardController extends Controller
     public function teacher()
     {
         $teacherId = Auth::id();
+        $schoolId = Auth::user()->school_id;
 
         $assigned = AssignedTeacher::with(['schoolClass', 'section', 'course'])
             ->where('teacher_id', $teacherId)
+            ->where('school_id', $schoolId)
             ->orderBy('id', 'desc')
             ->get();
 
@@ -72,7 +76,8 @@ class DashboardController extends Controller
         $studentCount = 0;
 
         if ($pairs->isNotEmpty()) {
-            $studentCount = Promotion::all()
+            $studentCount = Promotion::where('school_id', $schoolId)
+                ->get()
                 ->filter(function ($promotion) use ($pairs) {
                     $key = $promotion->class_id . '-' . $promotion->section_id;
 
@@ -94,10 +99,12 @@ class DashboardController extends Controller
     public function student()
     {
         $studentId = Auth::id();
+        $schoolId = Auth::user()->school_id;
         $currentSessionId = $this->currentSessionId();
 
         $promotion = Promotion::with(['schoolClass', 'section'])
             ->where('student_id', $studentId)
+            ->where('school_id', $schoolId)
             ->when($currentSessionId, function ($query, $sessionId) {
                 return $query->where('session_id', $sessionId);
             })
@@ -109,6 +116,7 @@ class DashboardController extends Controller
 
         if ($promotion) {
             $courseCount = Course::where('class_id', $promotion->class_id)
+                ->where('school_id', $schoolId)
                 ->when($currentSessionId, function ($query, $sessionId) {
                     return $query->where('session_id', $sessionId);
                 })
@@ -116,6 +124,7 @@ class DashboardController extends Controller
 
             $teacherCount = AssignedTeacher::where('class_id', $promotion->class_id)
                 ->where('section_id', $promotion->section_id)
+                ->where('school_id', $schoolId)
                 ->when($currentSessionId, function ($query, $sessionId) {
                     return $query->where('session_id', $sessionId);
                 })
@@ -125,6 +134,7 @@ class DashboardController extends Controller
         }
 
         $resultCount = FinalMark::where('student_id', $studentId)
+            ->where('school_id', $schoolId)
             ->when($currentSessionId, function ($query, $sessionId) {
                 return $query->where('session_id', $sessionId);
             })
@@ -141,10 +151,14 @@ class DashboardController extends Controller
     public function parent()
     {
         $user = Auth::user();
+        $schoolId = $user->school_id;
 
         $children = StudentParentInfo::with('student')
-            ->where('father_phone', $user->phone)
-            ->orWhere('mother_phone', $user->phone)
+            ->where('school_id', $schoolId)
+            ->where(function ($query) use ($user) {
+                $query->where('father_phone', $user->phone)
+                    ->orWhere('mother_phone', $user->phone);
+            })
             ->get();
 
         return view('dashboards.parent', [
