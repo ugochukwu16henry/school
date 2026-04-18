@@ -156,7 +156,7 @@ class UserController extends Controller
         }
 
         $studentParentInfoRepository = new StudentParentInfoRepository();
-        $parent_info = $studentParentInfoRepository->getParentInfo($student_id);
+        $parent_info = $studentParentInfoRepository->getParentInfo($student_id, $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id);
         $promotionRepository = new PromotionRepository();
         $current_school_session_id = $this->getSchoolCurrentSession();
         $promotion_info = $promotionRepository->getPromotionInfoById($current_school_session_id, $student_id);
@@ -182,7 +182,10 @@ class UserController extends Controller
                 return abort(403, 'You cannot update students across schools.');
             }
 
-            $this->userRepository->updateStudent($request->toArray());
+            $payload = $request->toArray();
+            $payload['school_id'] = $loggedInUser->role === 'super_admin' ? null : $loggedInUser->school_id;
+
+            $this->userRepository->updateStudent($payload);
 
             return back()->with('status', 'Student update was successful!');
         } catch (\Exception $e) {

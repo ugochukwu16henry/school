@@ -14,15 +14,20 @@ class PromotionRepository {
                 'class_id'      => $request['class_id'],
                 'section_id'    => $request['section_id'],
                 'id_card_number'=> $request['id_card_number'],
+                'school_id'     => $request['school_id'] ?? null,
             ]);
         } catch (\Exception $e) {
             throw new \Exception('Failed to add Student. '.$e->getMessage());
         }
     }
 
-    public function update($request, $student_id) {
+    public function update($request, $student_id, $schoolId = null) {
         try{
-            Promotion::where('student_id', $student_id)->update([
+            Promotion::where('student_id', $student_id)
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
+                ->update([
                 'id_card_number'=> $request['id_card_number'],
             ]);
         } catch (\Exception $e) {

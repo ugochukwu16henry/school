@@ -60,8 +60,11 @@ class RoutineController extends Controller
     public function store(RoutineStoreRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $routineRepository = new RoutineRepository();
-            $routineRepository->saveRoutine($request->validated());
+            $routineRepository->saveRoutine($payload);
 
             return back()->with('status', 'Routine save was successful!');
         } catch (\Exception $e) {
@@ -77,11 +80,12 @@ class RoutineController extends Controller
      */
     public function show(Request $request)
     {
+        $loggedInUser = auth()->user();
         $class_id = $request->query('class_id', 0);
         $section_id = $request->query('section_id', 0);
         $current_school_session_id = $this->getSchoolCurrentSession();
         $routineRepository = new RoutineRepository();
-        $routines = $routineRepository->getAll($class_id, $section_id, $current_school_session_id);
+        $routines = $routineRepository->getAll($class_id, $section_id, $current_school_session_id, $loggedInUser->school_id);
         $routines = $routines->sortBy('weekday')->groupBy('weekday');
 
         $data = [

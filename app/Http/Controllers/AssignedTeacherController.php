@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Traits\SchoolSession;
 use App\Interfaces\SemesterInterface;
@@ -45,11 +46,21 @@ class AssignedTeacherController extends Controller
      */
     public function getTeacherCourses(Request $request)
     {
+        $loggedInUser = auth()->user();
         $teacher_id = $request->query('teacher_id');
         $semester_id = $request->query('semester_id');
 
         if($teacher_id == null) {
             abort(404);
+        }
+
+        $teacher = User::where('id', $teacher_id)
+            ->where('role', 'teacher')
+            ->where('school_id', $loggedInUser->school_id)
+            ->first();
+
+        if (!$teacher) {
+            return abort(404);
         }
         
         $current_school_session_id = $this->getSchoolCurrentSession();
@@ -92,8 +103,11 @@ class AssignedTeacherController extends Controller
     public function store(TeacherAssignRequest $request)
     {
         try {
+            $payload = $request->validated();
+            $payload['school_id'] = auth()->user()->school_id;
+
             $assignedTeacherRepository = new AssignedTeacherRepository();
-            $assignedTeacherRepository->assign($request->validated());
+            $assignedTeacherRepository->assign($payload);
 
             return back()->with('status', 'Assigning teacher was successful!');
         } catch (\Exception $e) {

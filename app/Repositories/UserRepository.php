@@ -141,11 +141,11 @@ class UserRepository implements UserInterface {
 
                 // Update Parents' information
                 $studentParentInfoRepository = new StudentParentInfoRepository();
-                $studentParentInfoRepository->update($request, $request['student_id']);
+                $studentParentInfoRepository->update($request, $request['student_id'], $request['school_id'] ?? null);
 
                 // Update Student's ID card number
                 $promotionRepository = new PromotionRepository();
-                $promotionRepository->update($request, $request['student_id']);
+                $promotionRepository->update($request, $request['student_id'], $request['school_id'] ?? null);
             });
         } catch (\Exception $e) {
             throw new \Exception('Failed to update Student. '.$e->getMessage());

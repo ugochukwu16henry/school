@@ -17,17 +17,21 @@ class RoutineRepository implements RoutineInterface {
                 'class_id'      => $request['class_id'],
                 'section_id'    => $request['section_id'],
                 'course_id'     => $request['course_id'],
+                'school_id'     => $request['school_id'] ?? null,
             ]);
         } catch (\Exception $e) {
             throw new \Exception('Failed to save routine. '.$e->getMessage());
         }
     }
 
-    public function getAll($class_id, $section_id, $session_id) {
+    public function getAll($class_id, $section_id, $session_id, $schoolId = null) {
         return Routine::with('course')
                 ->where('session_id', $session_id)
                 ->where('class_id', $class_id)
                 ->where('section_id', $section_id)
+                ->when($schoolId !== null, function ($query) use ($schoolId) {
+                    return $query->where('school_id', $schoolId);
+                })
                 ->get();
     }
 }

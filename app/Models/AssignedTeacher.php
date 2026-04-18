@@ -25,6 +25,7 @@ class AssignedTeacher extends Model
         'section_id',
         'course_id',
         'session_id',
+        'school_id',
     ];
 
     /**

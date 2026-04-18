@@ -156,4 +156,45 @@ class TenantIsolationControllerTest extends TestCase
 
         $response->assertStatus(404);
     }
+
+    public function test_admin_cannot_view_teacher_courses_for_another_school_teacher()
+    {
+        $this->withoutMiddleware();
+
+        $schoolA = School::create([
+            'name' => 'School A4',
+            'slug' => 'school-a4',
+            'status' => 'active',
+            'plan' => 'starter',
+        ]);
+
+        $schoolB = School::create([
+            'name' => 'School B4',
+            'slug' => 'school-b4',
+            'status' => 'active',
+            'plan' => 'starter',
+        ]);
+
+        $sessionB = SchoolSession::create([
+            'session_name' => '2028/2029',
+            'school_id' => $schoolB->id,
+        ]);
+
+        $foreignTeacher = User::factory()->create([
+            'role' => 'teacher',
+            'school_id' => $schoolB->id,
+        ]);
+
+        $adminA = User::factory()->create([
+            'role' => 'admin',
+            'school_id' => $schoolA->id,
+        ]);
+        /** @var User $adminA */
+
+        $response = $this->actingAs($adminA)
+            ->withSession(['browse_session_id' => $sessionB->id])
+            ->get('/courses/teacher/index?teacher_id=' . $foreignTeacher->id . '&semester_id=1');
+
+        $response->assertStatus(404);
+    }
 }
