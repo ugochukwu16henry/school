@@ -25,12 +25,72 @@
         <div class="col-md-6">
             <div class="card h-100"><div class="card-body"><h6 class="text-muted">Published Results</h6><h3>{{ $resultCount }}</h3></div></div>
         </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Parents Linked</h6><h3>{{ $parentCount }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Assignments</h6><h3>{{ $assignmentCount }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Notices</h6><h3>{{ $noticeCount }}</h3></div></div>
+        </div>
+        <div class="col-md-3">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Events</h6><h3>{{ $eventCount }}</h3></div></div>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
         <div class="col-md-4"><a class="btn btn-outline-primary w-100" href="{{ route('course.student.list.show', ['student_id' => Auth::id()]) }}">My Courses</a></div>
         <div class="col-md-4"><a class="btn btn-outline-primary w-100" href="{{ route('student.attendance.show', ['id' => Auth::id()]) }}">My Attendance</a></div>
         <div class="col-md-4"><button type="button" class="btn btn-outline-secondary w-100" disabled>Download Transcript (next step)</button></div>
+    </div>
+
+    <div class="row g-3">
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent"><i class="bi bi-file-post me-2"></i>Recent Assignments</div>
+                <div class="list-group list-group-flush">
+                    @forelse($recentAssignments as $assignment)
+                        <div class="list-group-item">
+                            <div class="fw-semibold">{{ $assignment->assignment_name }}</div>
+                            <div class="small text-muted">{{ optional($assignment->course)->course_name ?? 'Course' }} | {{ $assignment->created_at }}</div>
+                        </div>
+                    @empty
+                        <div class="list-group-item text-muted">No assignments yet.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent"><i class="bi bi-megaphone me-2"></i>Recent Notices</div>
+                <div class="list-group list-group-flush">
+                    @forelse($recentNotices as $notice)
+                        <div class="list-group-item">
+                            <div class="small text-muted">{{ $notice->created_at }}</div>
+                            <div>{!! Purify::clean($notice->notice) !!}</div>
+                        </div>
+                    @empty
+                        <div class="list-group-item text-muted">No notices available.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent"><i class="bi bi-calendar-event me-2"></i>Upcoming Events</div>
+                <div class="list-group list-group-flush">
+                    @forelse($upcomingEvents as $event)
+                        <div class="list-group-item">
+                            <div class="fw-semibold">{{ $event->title }}</div>
+                            <div class="small text-muted">Starts: {{ $event->start }}</div>
+                        </div>
+                    @empty
+                        <div class="list-group-item text-muted">No upcoming events.</div>
+                    @endforelse
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection

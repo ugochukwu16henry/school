@@ -19,6 +19,21 @@
         <div class="col-md-4">
             <div class="card h-100"><div class="card-body"><h6 class="text-muted">Assigned Students</h6><h3>{{ $studentCount }}</h3></div></div>
         </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Published Assignments</h6><h3>{{ $assignmentCount }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Exams in Scope</h6><h3>{{ $examCount }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Marks Entries</h6><h3>{{ $markCount }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Final Marks</h6><h3>{{ $finalMarkCount }}</h3></div></div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100"><div class="card-body"><h6 class="text-muted">Attendance Today</h6><h3>{{ $attendanceTodayCount }}</h3></div></div>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">
@@ -34,20 +49,22 @@
                 <table class="table table-striped mb-0">
                     <thead>
                         <tr>
+                            <th>Published</th>
                             <th>Class</th>
                             <th>Section</th>
                             <th>Course</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @forelse($assigned->take(10) as $row)
+                        @forelse($recentAssignments as $row)
                             <tr>
+                                <td>{{ $row->created_at }}</td>
                                 <td>{{ optional($row->schoolClass)->class_name ?? '-' }}</td>
                                 <td>{{ optional($row->section)->section_name ?? '-' }}</td>
                                 <td>{{ optional($row->course)->course_name ?? '-' }}</td>
                             </tr>
                         @empty
-                            <tr><td colspan="3" class="text-center py-3">No class assignment found.</td></tr>
+                            <tr><td colspan="4" class="text-center py-3">No assignment published yet.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

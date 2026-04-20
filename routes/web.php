@@ -128,6 +128,7 @@ Route::middleware(['auth', 'school.access'])->group(function () {
         Route::get('/teacher', [DashboardController::class, 'teacher'])->middleware('role:teacher')->name('teacher');
         Route::get('/student', [DashboardController::class, 'student'])->middleware('role:student')->name('student');
         Route::get('/parent', [DashboardController::class, 'parent'])->middleware('role:parent')->name('parent');
+        Route::get('/affiliate', [DashboardController::class, 'affiliate'])->middleware('role:affiliate')->name('affiliate');
     });
 
     Route::prefix('dashboard/super-admin')->name('dashboard.super-admin.')->middleware('role:super_admin')->group(function () {

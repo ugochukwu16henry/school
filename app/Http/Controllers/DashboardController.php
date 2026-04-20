@@ -6,6 +6,9 @@ use App\Models\Course;
 use App\Models\Event;
 use App\Models\FinalMark;
 use App\Models\Assignment;
+use App\Models\Attendance;
+use App\Models\Exam;
+use App\Models\Mark;
 use App\Models\Notice;
 use App\Models\Promotion;
 use App\Models\School;
@@ -47,6 +50,10 @@ class DashboardController extends Controller
 
         if ($role === 'parent') {
             return redirect()->route('dashboard.parent');
+        }
+
+        if ($role === 'affiliate') {
+            return redirect()->route('dashboard.affiliate');
         }
 
         return redirect()->route('dashboard.admin');
@@ -123,10 +130,14 @@ class DashboardController extends Controller
     {
         $teacherId = Auth::id();
         $schoolId = Auth::user()->school_id;
+        $currentSessionId = $this->currentSessionId();
 
         $assigned = AssignedTeacher::with(['schoolClass', 'section', 'course'])
             ->where('teacher_id', $teacherId)
             ->where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
             ->orderBy('id', 'desc')
             ->get();
 
@@ -144,6 +155,9 @@ class DashboardController extends Controller
 
         if ($pairs->isNotEmpty()) {
             $studentCount = Promotion::where('school_id', $schoolId)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
                 ->get()
                 ->filter(function ($promotion) use ($pairs) {
                     $key = $promotion->class_id . '-' . $promotion->section_id;
@@ -155,11 +169,83 @@ class DashboardController extends Controller
                 ->count();
         }
 
+        $classIds = $assigned->pluck('class_id')->filter()->unique()->values()->all();
+        $sectionIds = $assigned->pluck('section_id')->filter()->unique()->values()->all();
+        $courseIds = $assigned->pluck('course_id')->filter()->unique()->values()->all();
+
+        $assignmentCount = Assignment::where('teacher_id', $teacherId)
+            ->where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->count();
+
+        $examCount = 0;
+        $markCount = 0;
+        $finalMarkCount = 0;
+        $attendanceTodayCount = 0;
+
+        if (!empty($classIds) && !empty($courseIds)) {
+            $examCount = Exam::where('school_id', $schoolId)
+                ->whereIn('class_id', $classIds)
+                ->whereIn('course_id', $courseIds)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->count();
+        }
+
+        if (!empty($classIds) && !empty($sectionIds) && !empty($courseIds)) {
+            $markCount = Mark::where('school_id', $schoolId)
+                ->whereIn('class_id', $classIds)
+                ->whereIn('section_id', $sectionIds)
+                ->whereIn('course_id', $courseIds)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->count();
+
+            $finalMarkCount = FinalMark::where('school_id', $schoolId)
+                ->whereIn('class_id', $classIds)
+                ->whereIn('section_id', $sectionIds)
+                ->whereIn('course_id', $courseIds)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->count();
+
+            $attendanceTodayCount = Attendance::where('school_id', $schoolId)
+                ->whereIn('class_id', $classIds)
+                ->whereIn('section_id', $sectionIds)
+                ->whereIn('course_id', $courseIds)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->whereDate('created_at', now()->toDateString())
+                ->count();
+        }
+
+        $recentAssignments = Assignment::with(['schoolClass', 'section', 'course'])
+            ->where('teacher_id', $teacherId)
+            ->where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->latest()
+            ->take(5)
+            ->get();
+
         return view('dashboards.teacher', [
             'assigned' => $assigned,
             'classCount' => $classCount,
             'courseCount' => $courseCount,
             'studentCount' => $studentCount,
+            'assignmentCount' => $assignmentCount,
+            'examCount' => $examCount,
+            'markCount' => $markCount,
+            'finalMarkCount' => $finalMarkCount,
+            'attendanceTodayCount' => $attendanceTodayCount,
+            'recentAssignments' => $recentAssignments,
         ]);
     }
 
@@ -207,11 +293,89 @@ class DashboardController extends Controller
             })
             ->count();
 
+        $parentInfo = StudentParentInfo::where('student_id', $studentId)
+            ->where('school_id', $schoolId)
+            ->first();
+
+        $parentCount = 0;
+
+        if ($parentInfo) {
+            if (!empty($parentInfo->father_phone)) {
+                $parentCount++;
+            }
+
+            if (!empty($parentInfo->mother_phone) && $parentInfo->mother_phone !== $parentInfo->father_phone) {
+                $parentCount++;
+            }
+        }
+
+        $assignmentCount = 0;
+
+        if ($promotion) {
+            $assignmentCount = Assignment::where('school_id', $schoolId)
+                ->where('class_id', $promotion->class_id)
+                ->where('section_id', $promotion->section_id)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->count();
+        }
+
+        $noticeCount = Notice::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->count();
+
+        $eventCount = Event::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->count();
+
+        $recentAssignments = collect();
+
+        if ($promotion) {
+            $recentAssignments = Assignment::with(['course'])
+                ->where('school_id', $schoolId)
+                ->where('class_id', $promotion->class_id)
+                ->where('section_id', $promotion->section_id)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->latest()
+                ->take(5)
+                ->get();
+        }
+
+        $recentNotices = Notice::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $upcomingEvents = Event::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->orderBy('start', 'asc')
+            ->take(5)
+            ->get();
+
         return view('dashboards.student', [
             'promotion' => $promotion,
             'courseCount' => $courseCount,
             'teacherCount' => $teacherCount,
             'resultCount' => $resultCount,
+            'parentCount' => $parentCount,
+            'assignmentCount' => $assignmentCount,
+            'noticeCount' => $noticeCount,
+            'eventCount' => $eventCount,
+            'recentAssignments' => $recentAssignments,
+            'recentNotices' => $recentNotices,
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 
@@ -312,6 +476,15 @@ class DashboardController extends Controller
             'childrenSummary' => $childrenSummary,
             'recentNotices' => $recentNotices,
             'upcomingEvents' => $upcomingEvents,
+        ]);
+    }
+
+    public function affiliate()
+    {
+        return view('dashboards.affiliate', [
+            'referredSchoolCount' => 0,
+            'pendingPayoutCount' => 0,
+            'trainingProgress' => 0,
         ]);
     }
 
