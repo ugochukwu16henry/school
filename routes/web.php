@@ -116,12 +116,23 @@ Route::middleware(['auth', 'school.access'])->group(function () {
 
     Route::get('/home', [DashboardController::class, 'index'])->name('home');
 
+    Route::prefix('school')->name('school.')->middleware('role:admin')->group(function () {
+        Route::get('/overview', [HomeController::class, 'overview'])->name('overview');
+        Route::get('/people', [HomeController::class, 'people'])->name('people');
+        Route::get('/operations', [HomeController::class, 'operations'])->name('operations');
+    });
+
     Route::prefix('dashboard')->name('dashboard.')->group(function () {
         Route::get('/admin', [HomeController::class, 'index'])->middleware('role:admin')->name('admin');
         Route::get('/super-admin', [DashboardController::class, 'superAdmin'])->middleware('role:super_admin')->name('super-admin');
         Route::get('/teacher', [DashboardController::class, 'teacher'])->middleware('role:teacher')->name('teacher');
         Route::get('/student', [DashboardController::class, 'student'])->middleware('role:student')->name('student');
         Route::get('/parent', [DashboardController::class, 'parent'])->middleware('role:parent')->name('parent');
+    });
+
+    Route::prefix('dashboard/super-admin')->name('dashboard.super-admin.')->middleware('role:super_admin')->group(function () {
+        Route::get('/schools', [DashboardController::class, 'superAdminSchools'])->name('schools');
+        Route::get('/revenue', [DashboardController::class, 'superAdminRevenue'])->name('revenue');
     });
 
     // Attendance

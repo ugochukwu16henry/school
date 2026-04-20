@@ -37,6 +37,46 @@ class HomeController extends Controller
      */
     public function index()
     {
+        return $this->overview();
+    }
+
+    /**
+     * School admin overview dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function overview()
+    {
+        return view('school.overview', $this->dashboardData());
+    }
+
+    /**
+     * School admin people dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function people()
+    {
+        return view('school.people', $this->dashboardData());
+    }
+
+    /**
+     * School admin operations dashboard.
+     *
+     * @return \Illuminate\Contracts\Support\Renderable
+     */
+    public function operations()
+    {
+        return view('school.operations', $this->dashboardData());
+    }
+
+    /**
+     * Shared dashboard data for school admin pages.
+     *
+     * @return array<string, mixed>
+     */
+    private function dashboardData()
+    {
         $current_school_session_id = $this->getSchoolCurrentSession();
 
         $classCount = $this->schoolClassRepository->getAllBySession($current_school_session_id)->count();
@@ -60,6 +100,6 @@ class HomeController extends Controller
             'maleStudentsBySession' => $maleStudentsBySession,
         ];
 
-        return view('home', $data);
+        return $data;
     }
 }

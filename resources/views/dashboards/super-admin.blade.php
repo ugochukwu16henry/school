@@ -7,6 +7,10 @@
             <h2 class="mb-1">Super Admin Dashboard</h2>
             <p class="text-muted mb-0">Platform-wide overview for the app owner.</p>
         </div>
+        <div class="col-auto">
+            <a href="{{ route('dashboard.super-admin.schools') }}" class="btn btn-outline-primary">Schools</a>
+            <a href="{{ route('dashboard.super-admin.revenue') }}" class="btn btn-primary">Revenue</a>
+        </div>
     </div>
 
     <div class="row g-3 mb-4">

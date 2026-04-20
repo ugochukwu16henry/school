@@ -3,10 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Course;
+use App\Models\Event;
 use App\Models\FinalMark;
+use App\Models\Assignment;
+use App\Models\Notice;
 use App\Models\Promotion;
 use App\Models\School;
 use App\Models\SchoolSession;
+use App\Models\SchoolSubscription;
 use App\Models\AssignedTeacher;
 use App\Models\StudentParentInfo;
 use App\Models\User;
@@ -25,6 +29,8 @@ class DashboardController extends Controller
             if (!$isSetupComplete) {
                 return redirect()->route('school.setup.show');
             }
+
+            return redirect()->route('school.overview');
         }
 
         if ($role === 'super_admin') {
@@ -59,6 +65,58 @@ class DashboardController extends Controller
         ];
 
         return view('dashboards.super-admin', $stats);
+    }
+
+    public function superAdminSchools()
+    {
+        $schools = School::withCount([
+            'users',
+            'users as admin_count' => function ($query) {
+                $query->where('role', 'admin');
+            },
+            'users as teacher_count' => function ($query) {
+                $query->where('role', 'teacher');
+            },
+            'users as student_count' => function ($query) {
+                $query->where('role', 'student');
+            },
+            'subscriptions as active_subscription_count' => function ($query) {
+                $query->where('status', 'active');
+            },
+        ])
+            ->orderBy('name')
+            ->paginate(15);
+
+        return view('dashboards.super-admin-schools', [
+            'schools' => $schools,
+        ]);
+    }
+
+    public function superAdminRevenue()
+    {
+        $totalSubscriptions = SchoolSubscription::count();
+        $activeSubscriptions = SchoolSubscription::where('status', 'active')->count();
+        $trialSubscriptions = SchoolSubscription::where('status', 'trialing')->count();
+        $canceledSubscriptions = SchoolSubscription::where('status', 'canceled')->count();
+
+        $providerBreakdown = SchoolSubscription::selectRaw('provider, COUNT(*) as total')
+            ->groupBy('provider')
+            ->orderByDesc('total')
+            ->get();
+
+        $planBreakdown = School::selectRaw('plan, COUNT(*) as total')
+            ->groupBy('plan')
+            ->orderByDesc('total')
+            ->get();
+
+        return view('dashboards.super-admin-revenue', [
+            'totalSubscriptions' => $totalSubscriptions,
+            'activeSubscriptions' => $activeSubscriptions,
+            'trialSubscriptions' => $trialSubscriptions,
+            'canceledSubscriptions' => $canceledSubscriptions,
+            'providerBreakdown' => $providerBreakdown,
+            'planBreakdown' => $planBreakdown,
+        ]);
     }
 
     public function teacher()
@@ -161,6 +219,7 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $schoolId = $user->school_id;
+        $currentSessionId = $this->currentSessionId();
 
         $children = StudentParentInfo::with('student')
             ->where('school_id', $schoolId)
@@ -170,8 +229,89 @@ class DashboardController extends Controller
             })
             ->get();
 
+        $childrenSummary = $children->map(function ($child) use ($schoolId, $currentSessionId) {
+            $student = $child->student;
+
+            if (!$student) {
+                return [
+                    'student' => null,
+                    'className' => null,
+                    'sectionName' => null,
+                    'resultCount' => 0,
+                    'assignmentCount' => 0,
+                    'teacherCount' => 0,
+                ];
+            }
+
+            $promotion = Promotion::with(['schoolClass', 'section'])
+                ->where('student_id', $student->id)
+                ->where('school_id', $schoolId)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->latest()
+                ->first();
+
+            $resultCount = FinalMark::where('student_id', $student->id)
+                ->where('school_id', $schoolId)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->count();
+
+            $assignmentCount = 0;
+            $teacherCount = 0;
+
+            if ($promotion) {
+                $assignmentCount = Assignment::where('school_id', $schoolId)
+                    ->where('class_id', $promotion->class_id)
+                    ->where('section_id', $promotion->section_id)
+                    ->when($currentSessionId, function ($query, $sessionId) {
+                        return $query->where('session_id', $sessionId);
+                    })
+                    ->count();
+
+                $teacherCount = AssignedTeacher::where('school_id', $schoolId)
+                    ->where('class_id', $promotion->class_id)
+                    ->where('section_id', $promotion->section_id)
+                    ->when($currentSessionId, function ($query, $sessionId) {
+                        return $query->where('session_id', $sessionId);
+                    })
+                    ->pluck('teacher_id')
+                    ->unique()
+                    ->count();
+            }
+
+            return [
+                'student' => $student,
+                'className' => optional(optional($promotion)->schoolClass)->class_name,
+                'sectionName' => optional(optional($promotion)->section)->section_name,
+                'resultCount' => $resultCount,
+                'assignmentCount' => $assignmentCount,
+                'teacherCount' => $teacherCount,
+            ];
+        });
+
+        $recentNotices = Notice::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $upcomingEvents = Event::where('school_id', $schoolId)
+            ->when($currentSessionId, function ($query, $sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->orderBy('start', 'asc')
+            ->take(5)
+            ->get();
+
         return view('dashboards.parent', [
-            'children' => $children,
+            'childrenSummary' => $childrenSummary,
+            'recentNotices' => $recentNotices,
+            'upcomingEvents' => $upcomingEvents,
         ]);
     }
 

@@ -2,8 +2,19 @@
     <div class="d-flex flex-column align-items-center align-items-sm-start ">
                 <ul class="nav flex-column pt-2 w-100">
                     <li class="nav-item">
-                        <a class="nav-link {{ request()->is('home')? 'active' : '' }}" href="{{url('home')}}"><i class="ms-auto bi bi-grid"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">{{ __('Dashboard') }}</span></a>
+                        <a class="nav-link {{ (request()->is('home') || request()->is('school/overview') || request()->is('school/people') || request()->is('school/operations')) ? 'active' : '' }}" href="{{url('home')}}"><i class="ms-auto bi bi-grid"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">{{ __('Dashboard') }}</span></a>
                     </li>
+                    @if (Auth::user()->role == "admin")
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('school/overview')? 'active' : '' }}" href="{{route('school.overview')}}"><i class="bi bi-speedometer2"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Overview</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('school/people')? 'active' : '' }}" href="{{route('school.people')}}"><i class="bi bi-people"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">People</span></a>
+                    </li>
+                    <li class="nav-item border-bottom">
+                        <a class="nav-link {{ request()->is('school/operations')? 'active' : '' }}" href="{{route('school.operations')}}"><i class="bi bi-gear"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Operations</span></a>
+                    </li>
+                    @endif
                     {{-- @if (Auth::user()->role == "teacher")
                     <li class="nav-item">
                         <a type="button" href="{{url('attendances')}}" class="d-flex nav-link {{ request()->is('attendances*')? 'active' : '' }}"><i class="bi bi-calendar2-week"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Attendance</span></a>
