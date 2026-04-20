@@ -17,6 +17,7 @@ use App\Models\SchoolSubscription;
 use App\Models\AssignedTeacher;
 use App\Models\StudentParentInfo;
 use App\Models\User;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
 class DashboardController extends Controller
@@ -61,13 +62,18 @@ class DashboardController extends Controller
 
     public function superAdmin()
     {
+        $roleCounts = User::selectRaw('role, COUNT(*) as total')
+            ->whereIn('role', ['admin', 'teacher', 'student', 'parent'])
+            ->groupBy('role')
+            ->pluck('total', 'role');
+
         $stats = [
             'schoolCount' => School::count(),
             'userCount' => User::count(),
-            'adminCount' => User::where('role', 'admin')->count(),
-            'teacherCount' => User::where('role', 'teacher')->count(),
-            'studentCount' => User::where('role', 'student')->count(),
-            'parentCount' => User::where('role', 'parent')->count(),
+            'adminCount' => (int) ($roleCounts['admin'] ?? 0),
+            'teacherCount' => (int) ($roleCounts['teacher'] ?? 0),
+            'studentCount' => (int) ($roleCounts['student'] ?? 0),
+            'parentCount' => (int) ($roleCounts['parent'] ?? 0),
             'sessionCount' => SchoolSession::count(),
         ];
 
@@ -102,9 +108,13 @@ class DashboardController extends Controller
     public function superAdminRevenue()
     {
         $totalSubscriptions = SchoolSubscription::count();
-        $activeSubscriptions = SchoolSubscription::where('status', 'active')->count();
-        $trialSubscriptions = SchoolSubscription::where('status', 'trialing')->count();
-        $canceledSubscriptions = SchoolSubscription::where('status', 'canceled')->count();
+        $subscriptionStatusCounts = SchoolSubscription::selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $activeSubscriptions = (int) ($subscriptionStatusCounts['active'] ?? 0);
+        $trialSubscriptions = (int) ($subscriptionStatusCounts['trialing'] ?? 0);
+        $canceledSubscriptions = (int) ($subscriptionStatusCounts['canceled'] ?? 0);
 
         $providerBreakdown = SchoolSubscription::selectRaw('provider, COUNT(*) as total')
             ->groupBy('provider')
@@ -385,7 +395,7 @@ class DashboardController extends Controller
         $schoolId = $user->school_id;
         $currentSessionId = $this->currentSessionId();
 
-        $children = StudentParentInfo::with('student')
+        $children = StudentParentInfo::with(['student:id,first_name,last_name,email'])
             ->where('school_id', $schoolId)
             ->where(function ($query) use ($user) {
                 $query->where('father_phone', $user->phone)
@@ -393,7 +403,74 @@ class DashboardController extends Controller
             })
             ->get();
 
-        $childrenSummary = $children->map(function ($child) use ($schoolId, $currentSessionId) {
+        $studentIds = $children
+            ->pluck('student_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $promotions = collect();
+        $resultCountByStudentId = collect();
+        $assignmentCountByPair = collect();
+        $teacherCountByPair = collect();
+
+        if (!empty($studentIds)) {
+            $promotions = Promotion::with(['schoolClass', 'section'])
+                ->whereIn('student_id', $studentIds)
+                ->where('school_id', $schoolId)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->latest('id')
+                ->get()
+                ->unique('student_id')
+                ->keyBy('student_id');
+
+            $resultCountByStudentId = FinalMark::selectRaw('student_id, COUNT(*) as total')
+                ->whereIn('student_id', $studentIds)
+                ->where('school_id', $schoolId)
+                ->when($currentSessionId, function ($query, $sessionId) {
+                    return $query->where('session_id', $sessionId);
+                })
+                ->groupBy('student_id')
+                ->pluck('total', 'student_id');
+
+            $classIds = $promotions->pluck('class_id')->filter()->unique()->values()->all();
+            $sectionIds = $promotions->pluck('section_id')->filter()->unique()->values()->all();
+
+            if (!empty($classIds) && !empty($sectionIds)) {
+                $assignmentCountByPair = Assignment::where('school_id', $schoolId)
+                    ->whereIn('class_id', $classIds)
+                    ->whereIn('section_id', $sectionIds)
+                    ->when($currentSessionId, function ($query, $sessionId) {
+                        return $query->where('session_id', $sessionId);
+                    })
+                    ->get(['class_id', 'section_id'])
+                    ->groupBy(function ($row) {
+                        return $row->class_id . '-' . $row->section_id;
+                    })
+                    ->map(function (Collection $rows) {
+                        return $rows->count();
+                    });
+
+                $teacherCountByPair = AssignedTeacher::where('school_id', $schoolId)
+                    ->whereIn('class_id', $classIds)
+                    ->whereIn('section_id', $sectionIds)
+                    ->when($currentSessionId, function ($query, $sessionId) {
+                        return $query->where('session_id', $sessionId);
+                    })
+                    ->get(['class_id', 'section_id', 'teacher_id'])
+                    ->groupBy(function ($row) {
+                        return $row->class_id . '-' . $row->section_id;
+                    })
+                    ->map(function (Collection $rows) {
+                        return $rows->pluck('teacher_id')->unique()->count();
+                    });
+            }
+        }
+
+        $childrenSummary = $children->map(function ($child) use ($promotions, $resultCountByStudentId, $assignmentCountByPair, $teacherCountByPair) {
             $student = $child->student;
 
             if (!$student) {
@@ -407,44 +484,11 @@ class DashboardController extends Controller
                 ];
             }
 
-            $promotion = Promotion::with(['schoolClass', 'section'])
-                ->where('student_id', $student->id)
-                ->where('school_id', $schoolId)
-                ->when($currentSessionId, function ($query, $sessionId) {
-                    return $query->where('session_id', $sessionId);
-                })
-                ->latest()
-                ->first();
-
-            $resultCount = FinalMark::where('student_id', $student->id)
-                ->where('school_id', $schoolId)
-                ->when($currentSessionId, function ($query, $sessionId) {
-                    return $query->where('session_id', $sessionId);
-                })
-                ->count();
-
-            $assignmentCount = 0;
-            $teacherCount = 0;
-
-            if ($promotion) {
-                $assignmentCount = Assignment::where('school_id', $schoolId)
-                    ->where('class_id', $promotion->class_id)
-                    ->where('section_id', $promotion->section_id)
-                    ->when($currentSessionId, function ($query, $sessionId) {
-                        return $query->where('session_id', $sessionId);
-                    })
-                    ->count();
-
-                $teacherCount = AssignedTeacher::where('school_id', $schoolId)
-                    ->where('class_id', $promotion->class_id)
-                    ->where('section_id', $promotion->section_id)
-                    ->when($currentSessionId, function ($query, $sessionId) {
-                        return $query->where('session_id', $sessionId);
-                    })
-                    ->pluck('teacher_id')
-                    ->unique()
-                    ->count();
-            }
+            $promotion = $promotions->get($student->id);
+            $pairKey = $promotion ? ($promotion->class_id . '-' . $promotion->section_id) : null;
+            $resultCount = (int) ($resultCountByStudentId[$student->id] ?? 0);
+            $assignmentCount = $pairKey ? (int) ($assignmentCountByPair[$pairKey] ?? 0) : 0;
+            $teacherCount = $pairKey ? (int) ($teacherCountByPair[$pairKey] ?? 0) : 0;
 
             return [
                 'student' => $student,
@@ -494,7 +538,14 @@ class DashboardController extends Controller
             return session('browse_session_id');
         }
 
-        $latest = SchoolSession::latest()->first();
+        $currentSchoolId = optional(Auth::user())->school_id;
+
+        $latest = SchoolSession::query()
+            ->when($currentSchoolId, function ($query, $schoolId) {
+                return $query->where('school_id', $schoolId);
+            })
+            ->latest('id')
+            ->first();
 
         return $latest ? $latest->id : null;
     }
