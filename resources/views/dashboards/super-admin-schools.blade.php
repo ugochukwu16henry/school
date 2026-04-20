@@ -13,6 +13,36 @@
         </div>
     </div>
 
+    @php
+        $schoolsOnPage = $schools->count();
+        $activeSchoolsOnPage = $schools->where('status', 'active')->count();
+        $totalUsersOnPage = (int) $schools->sum('users_count');
+        $activeSubscriptionsOnPage = (int) $schools->sum('active_subscription_count');
+    @endphp
+
+    <div class="row g-3 mb-4">
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body"><h6 class="text-muted">Total Schools</h6><h3>{{ $schools->total() }}</h3></div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body"><h6 class="text-muted">Schools On This Page</h6><h3>{{ $schoolsOnPage }}</h3></div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body"><h6 class="text-muted">Active (This Page)</h6><h3>{{ $activeSchoolsOnPage }}</h3></div>
+            </div>
+        </div>
+        <div class="col-md-6 col-xl-3">
+            <div class="card h-100">
+                <div class="card-body"><h6 class="text-muted">Users / Active Subscriptions</h6><h3>{{ $totalUsersOnPage }} / {{ $activeSubscriptionsOnPage }}</h3></div>
+            </div>
+        </div>
+    </div>
+
     <div class="card">
         <div class="card-header bg-transparent">Schools</div>
         <div class="card-body p-0">
