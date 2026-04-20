@@ -38,6 +38,15 @@
                         <div class="col-md-6 col-xl-3">
                             <div class="card h-100">
                                 <div class="card-body">
+                                    <h5 class="card-title"><i class="bi bi-people-fill me-2"></i>Parents</h5>
+                                    <p class="text-muted small">Current count: {{ $parentCount }}</p>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" disabled>Managed via linkage</button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6 col-xl-3">
+                            <div class="card h-100">
+                                <div class="card-body">
                                     <h5 class="card-title"><i class="bi bi-journal-bookmark me-2"></i>Classes</h5>
                                     <p class="text-muted small">Current count: {{ $classCount }}</p>
                                     <a href="{{ url('classes') }}" class="btn btn-outline-primary btn-sm">Open Classes</a>

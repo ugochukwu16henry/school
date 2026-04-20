@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Controllers\Controller;
 use App\Traits\SchoolSession;
 use App\Interfaces\UserInterface;
+use App\Models\User;
 use App\Repositories\NoticeRepository;
 use App\Interfaces\SchoolClassInterface;
 use App\Interfaces\SchoolSessionInterface;
@@ -88,6 +89,7 @@ class HomeController extends Controller
         $maleStudentsBySession = $promotionRepository->getMaleStudentsBySessionCount($current_school_session_id);
 
         $teacherCount = $this->userRepository->getAllTeachers()->count();
+        $parentCount = User::where('role', 'parent')->count();
 
         $noticeRepository = new NoticeRepository();
         $notices = $noticeRepository->getAll($current_school_session_id);
@@ -96,6 +98,7 @@ class HomeController extends Controller
             'classCount'    => $classCount,
             'studentCount'  => $studentCount,
             'teacherCount'  => $teacherCount,
+            'parentCount'   => $parentCount,
             'notices'       => $notices,
             'maleStudentsBySession' => $maleStudentsBySession,
         ];
