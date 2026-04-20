@@ -5,7 +5,7 @@ namespace App\Repositories;
 use App\Models\StudentParentInfo;
 
 class StudentParentInfoRepository {
-    public function store($request, $student_id) {
+    public function store($request, $student_id, $claimCode = null) {
         try {
             StudentParentInfo::create([
                 'student_id'    => $student_id,
@@ -13,6 +13,9 @@ class StudentParentInfoRepository {
                 'father_phone'  => $request['father_phone'],
                 'mother_name'   => $request['mother_name'],
                 'mother_phone'  => $request['mother_phone'],
+                'parent_email'  => $request['parent_email'] ?? null,
+                'claim_code'    => $claimCode,
+                'claim_code_generated_at' => $claimCode ? now() : null,
                 'parent_address'=> $request['parent_address'],
                 'school_id'     => $request['school_id'] ?? null,
             ]);
@@ -40,6 +43,7 @@ class StudentParentInfoRepository {
                 'father_phone'  => $request['father_phone'],
                 'mother_name'   => $request['mother_name'],
                 'mother_phone'  => $request['mother_phone'],
+                'parent_email'  => $request['parent_email'] ?? null,
                 'parent_address'=> $request['parent_address'],
             ]);
         } catch (\Exception $e) {

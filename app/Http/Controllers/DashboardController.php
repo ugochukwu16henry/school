@@ -398,7 +398,8 @@ class DashboardController extends Controller
         $children = StudentParentInfo::with(['student:id,first_name,last_name,email'])
             ->where('school_id', $schoolId)
             ->where(function ($query) use ($user) {
-                $query->where('father_phone', $user->phone)
+                $query->where('parent_user_id', $user->id)
+                    ->orWhere('father_phone', $user->phone)
                     ->orWhere('mother_phone', $user->phone);
             })
             ->get();

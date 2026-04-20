@@ -45,6 +45,7 @@ class StudentStoreRequest extends FormRequest
             'father_phone'      => 'required|string',
             'mother_name'       => 'required|string',
             'mother_phone'      => 'required|string',
+            'parent_email'      => 'nullable|string|email|max:255',
             'parent_address'    => 'required|string',
 
             // Academic information

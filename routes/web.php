@@ -24,6 +24,7 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\SchoolClassController;
 use App\Http\Controllers\GradingSystemController;
 use App\Http\Controllers\SchoolSessionController;
+use App\Http\Controllers\ParentClaimController;
 use App\Http\Controllers\AcademicSettingController;
 use App\Http\Controllers\AssignedTeacherController;
 use App\Http\Controllers\Auth\ConfirmPasswordController;
@@ -72,6 +73,11 @@ Route::post('password/reset', [ResetPasswordController::class, 'reset'])->name('
 
 Route::get('password/confirm', [ConfirmPasswordController::class, 'showConfirmForm'])->name('password.confirm');
 Route::post('password/confirm', [ConfirmPasswordController::class, 'confirm']);
+
+Route::middleware('guest')->group(function () {
+    Route::get('/parent/claim/{code}', [ParentClaimController::class, 'show'])->name('parent.claim.show');
+    Route::post('/parent/claim/{code}', [ParentClaimController::class, 'store'])->name('parent.claim.store');
+});
 
 Route::middleware(['auth', 'school.access'])->group(function () {
 

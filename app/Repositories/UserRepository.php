@@ -7,8 +7,10 @@ use App\Traits\Base64ToFile;
 use App\Interfaces\UserInterface;
 use App\Models\SchoolClass;
 use App\Models\Section;
+use App\Models\StudentParentInfo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use App\Repositories\PromotionRepository;
 use App\Repositories\StudentParentInfoRepository;
 use App\Repositories\StudentAcademicInfoRepository;
@@ -69,7 +71,7 @@ class UserRepository implements UserInterface {
     */
     public function createStudent($request) {
         try {
-            DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request) {
                 $student = User::create([
                     'first_name'    => $request['first_name'],
                     'last_name'     => $request['last_name'],
@@ -90,9 +92,11 @@ class UserRepository implements UserInterface {
                     'password'      => Hash::make($request['password']),
                 ]);
 
+                $claimCode = $this->generateUniqueClaimCode();
+
                 // Store Parents' information
                 $studentParentInfoRepository = new StudentParentInfoRepository();
-                $studentParentInfoRepository->store($request, $student->id);
+                $studentParentInfoRepository->store($request, $student->id, $claimCode);
 
                 // Store Academic information
                 $studentAcademicInfoRepository = new StudentAcademicInfoRepository();
@@ -114,10 +118,24 @@ class UserRepository implements UserInterface {
                     'view events',
                     'view notices',
                 );
+
+                return [
+                    'student' => $student,
+                    'claim_code' => $claimCode,
+                ];
             });
         } catch (\Exception $e) {
             throw new \Exception('Failed to create Student. '.$e->getMessage());
         }
+    }
+
+    private function generateUniqueClaimCode(): string
+    {
+        do {
+            $code = 'CHD-' . Str::upper(Str::random(10));
+        } while (StudentParentInfo::where('claim_code', $code)->exists());
+
+        return $code;
     }
 
     public function updateStudent($request) {

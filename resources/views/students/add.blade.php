@@ -131,6 +131,10 @@
                                     <label for="inputMotherPhone" class="form-label">Mother's Phone<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
                                     <input type="text" class="form-control" id="inputMotherPhone" name="mother_phone" placeholder="+880 01......" required value="{{old('mother_name')}}">
                                 </div>
+                                <div class="col-md-4">
+                                    <label for="inputParentEmail" class="form-label">Parent Email (optional)</label>
+                                    <input type="email" class="form-control" id="inputParentEmail" name="parent_email" placeholder="parent@example.com" value="{{old('parent_email')}}">
+                                </div>
                                 <div class="col-4-md">
                                     <label for="inputParentAddress" class="form-label">Address<sup><i class="bi bi-asterisk text-primary"></i></sup></label>
                                     <input type="text" class="form-control" id="inputParentAddress" name="parent_address" placeholder="634 Main St" required value="{{old('parent_address')}}">

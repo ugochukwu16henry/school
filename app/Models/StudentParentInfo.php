@@ -22,8 +22,18 @@ class StudentParentInfo extends Model
         'father_phone',
         'mother_name',
         'mother_phone',
+        'parent_email',
+        'parent_user_id',
+        'claim_code',
+        'claim_code_generated_at',
+        'claim_code_claimed_at',
         'parent_address',
         'school_id',
+    ];
+
+    protected $casts = [
+        'claim_code_generated_at' => 'datetime',
+        'claim_code_claimed_at' => 'datetime',
     ];
 
     /**
@@ -32,5 +42,10 @@ class StudentParentInfo extends Model
     public function student()
     {
         return $this->belongsTo(User::class, 'student_id');
+    }
+
+    public function parentUser()
+    {
+        return $this->belongsTo(User::class, 'parent_user_id');
     }
 }

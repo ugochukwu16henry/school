@@ -139,9 +139,13 @@ class UserController extends Controller
             $payload = $request->validated();
             $payload['school_id'] = auth()->user()->school_id;
 
-            $this->userRepository->createStudent($payload);
+            $result = $this->userRepository->createStudent($payload);
+            $claimCode = $result['claim_code'] ?? null;
 
-            return back()->with('status', 'Student creation was successful!');
+            return back()
+                ->with('status', 'Student creation was successful!')
+                ->with('claim_link', $claimCode ? route('parent.claim.show', ['code' => $claimCode]) : null)
+                ->with('claim_code', $claimCode);
         } catch (\Exception $e) {
             return back()->withError($e->getMessage());
         }
