@@ -66,9 +66,6 @@
             <a href="{{ route('events.show') }}" class="{{ $linkClass(['events.show']) }}">
                 <i class="bi bi-calendar-event me-2"></i>School Events
             </a>
-            <a href="{{ route('notice.create') }}" class="{{ $linkClass(['notice.create']) }}">
-                <i class="bi bi-megaphone me-2"></i>Notices
-            </a>
         @else
             <a href="{{ route('dashboard.admin') }}" class="{{ $linkClass(['dashboard.admin', 'home']) }}">
                 <i class="bi bi-speedometer2 me-2"></i>Dashboard
