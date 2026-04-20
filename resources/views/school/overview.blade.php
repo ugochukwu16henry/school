@@ -62,7 +62,7 @@
                             <div class="card h-100">
                                 <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
                                     <span><i class="bi bi-megaphone me-2"></i> Latest Notices</span>
-                                    <small class="text-muted">{{ $notices->total() }} total</small>
+                                    <small class="text-muted">{{ method_exists($notices, 'total') ? $notices->total() : $notices->count() }} total</small>
                                 </div>
                                 <div class="card-body p-0">
                                     <div class="list-group list-group-flush">
