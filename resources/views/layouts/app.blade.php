@@ -44,19 +44,12 @@
                 <div class="collapse navbar-collapse" id="navbarSupportedContent">
                     <!-- Left Side Of Navbar -->
                     @auth
-                        @php
-                            $latest_school_session = \App\Models\SchoolSession::latest()->first();
-                            $current_school_session_name = null;
-                            if($latest_school_session){
-                                $current_school_session_name = $latest_school_session->session_name;
-                            }
-                        @endphp
                     <ul class="navbar-nav">
                         <li class="nav-item">
-                            @if (session()->has('browse_session_name') && session('browse_session_name') !== $current_school_session_name)
-                                <a class="nav-link text-danger disabled" href="#" tabindex="-1" aria-disabled="true"><i class="bi bi-exclamation-diamond-fill me-2"></i> Browsing as Academic Session {{session('browse_session_name')}}</a>
-                            @elseif(\App\Models\SchoolSession::latest()->count() > 0)
-                                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Current Academic Session {{$current_school_session_name}}</a>
+                            @if ($isBrowsingAnotherSession ?? false)
+                                <a class="nav-link text-danger disabled" href="#" tabindex="-1" aria-disabled="true"><i class="bi bi-exclamation-diamond-fill me-2"></i> Browsing as Academic Session {{ $browseSessionName }}</a>
+                            @elseif($hasAnySchoolSession ?? false)
+                                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Current Academic Session {{ $currentSchoolSessionName }}</a>
                             @else
                                 <a class="nav-link text-danger disabled" href="#" tabindex="-1" aria-disabled="true"><i class="bi bi-exclamation-diamond-fill me-2"></i> Create an Academic Session.</a>
                             @endif

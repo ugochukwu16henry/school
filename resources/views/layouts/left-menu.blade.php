@@ -22,19 +22,7 @@
                     @endif --}}
                     @can('view classes')
                     <li class="nav-item">
-                        @php
-                            if (session()->has('browse_session_id')){
-                                $classCount = \App\Models\SchoolClass::where('session_id', session('browse_session_id'))->count();
-                            } else {
-                                $latest_session = \App\Models\SchoolSession::latest()->first();
-                                if($latest_session) {
-                                    $classCount = \App\Models\SchoolClass::where('session_id', $latest_session->id)->count();
-                                } else {
-                                    $classCount = 0;
-                                }
-                            }
-                        @endphp
-                        <a class="nav-link d-flex {{ request()->is('classes')? 'active' : '' }}" href="{{url('classes')}}"><i class="bi bi-diagram-3"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Classes</span> <span class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $classCount }}</span></a>
+                        <a class="nav-link d-flex {{ request()->is('classes')? 'active' : '' }}" href="{{url('classes')}}"><i class="bi bi-diagram-3"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Classes</span> <span class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $menuClassCount ?? 0 }}</span></a>
                     </li>
                     @endcan
                     @if(Auth::user()->role != "student")
@@ -81,22 +69,14 @@
                         <a class="nav-link" href="#"><i class="bi bi-journal-text"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Syllabus</span></a>
                     </li> --}}
                     <li class="nav-item border-bottom">
-                        @php
-                            if (session()->has('browse_session_id')){
-                                $class_info = \App\Models\Promotion::where('session_id', session('browse_session_id'))->where('student_id', Auth::user()->id)->first();
-                            } else {
-                                $latest_session = \App\Models\SchoolSession::latest()->first();
-                                if($latest_session) {
-                                    $class_info = \App\Models\Promotion::where('session_id', $latest_session->id)->where('student_id', Auth::user()->id)->first();
-                                } else {
-                                    $class_info = [];
-                                }
-                            }
-                        @endphp
+                        @if(($studentRoutineClassInfo ?? null) && $studentRoutineClassInfo->class_id && $studentRoutineClassInfo->section_id)
                         <a class="nav-link" href="{{route('section.routine.show', [
-                            'class_id'  => $class_info->class_id,
-                            'section_id'=> $class_info->section_id
+                            'class_id'  => $studentRoutineClassInfo->class_id,
+                            'section_id'=> $studentRoutineClassInfo->section_id
                         ])}}"><i class="bi bi-calendar4-range"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
+                        @else
+                        <a class="nav-link disabled" href="#" aria-disabled="true"><i class="bi bi-calendar4-range"></i> <span class="ms-1 d-inline d-sm-none d-md-none d-xl-inline">Routine</span></a>
+                        @endif
                     </li>
                     @endif
                     @if(Auth::user()->role != "student")
