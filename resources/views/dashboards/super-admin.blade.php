@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            @include('dashboards.partials.sidebar', ['role' => 'super_admin'])
+        </div>
+        <div class="col-lg-9">
     <div class="row mb-4">
         <div class="col">
             <h2 class="mb-1">Super Admin Dashboard</h2>
@@ -39,6 +44,8 @@
 
     <div class="alert alert-info" role="alert">
         This is the first implementation step. Next iterations will add cross-school billing, subscription health, and school lifecycle controls.
+    </div>
+        </div>
     </div>
 </div>
 @endsection

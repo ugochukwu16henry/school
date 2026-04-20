@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            @include('dashboards.partials.sidebar', ['role' => 'parent'])
+        </div>
+        <div class="col-lg-9">
     <h2 class="mb-1">Parent Dashboard</h2>
     <p class="text-muted mb-0">View your children, academic progress, and school updates.</p>
 
@@ -109,6 +114,8 @@
             </div>
         </div>
     </div>
-    
+
+        </div>
+    </div>
 </div>
 @endsection

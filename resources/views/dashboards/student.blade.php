@@ -2,6 +2,11 @@
 
 @section('content')
 <div class="container py-4">
+    <div class="row g-4">
+        <div class="col-lg-3">
+            @include('dashboards.partials.sidebar', ['role' => 'student'])
+        </div>
+        <div class="col-lg-9">
     <div class="row mb-4">
         <div class="col">
             <h2 class="mb-1">Student Dashboard</h2>
@@ -90,6 +95,8 @@
                     @endforelse
                 </div>
             </div>
+        </div>
+    </div>
         </div>
     </div>
 </div>
