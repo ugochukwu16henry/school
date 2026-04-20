@@ -69,8 +69,26 @@ class SectionController extends Controller
     }
 
     public function getByClassId(Request $request) {
-        $sections = $this->schoolSectionRepository->getAllByClassId($request->query('class_id', 0));
-        $courses = $this->courseRepository->getByClassId($request->query('class_id', 0));
+        $classId = (int) $request->query('class_id', 0);
+        $sessionId = (int) $request->query('session_id', 0);
+
+        if ($classId <= 0) {
+            return response()->json(['sections' => [], 'courses' => []]);
+        }
+
+        $sections = Section::query()
+            ->where('class_id', $classId)
+            ->when($sessionId > 0, function ($query) use ($sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->get();
+
+        $courses = \App\Models\Course::query()
+            ->where('class_id', $classId)
+            ->when($sessionId > 0, function ($query) use ($sessionId) {
+                return $query->where('session_id', $sessionId);
+            })
+            ->get();
 
         return response()->json(['sections' => $sections, 'courses' => $courses]);
     }
