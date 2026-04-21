@@ -415,6 +415,7 @@ class DashboardController extends Controller
         $resultCountByStudentId = collect();
         $assignmentCountByPair = collect();
         $teacherCountByPair = collect();
+        $teacherContactsByPair = collect();
 
         if (!empty($studentIds)) {
             $promotions = Promotion::with(['schoolClass', 'section'])
@@ -468,10 +469,39 @@ class DashboardController extends Controller
                     ->map(function (Collection $rows) {
                         return $rows->pluck('teacher_id')->unique()->count();
                     });
+
+                $teacherContactsByPair = AssignedTeacher::with(['teacher:id,first_name,last_name,email,phone'])
+                    ->where('school_id', $schoolId)
+                    ->whereIn('class_id', $classIds)
+                    ->whereIn('section_id', $sectionIds)
+                    ->when($currentSessionId, function ($query, $sessionId) {
+                        return $query->where('session_id', $sessionId);
+                    })
+                    ->get(['class_id', 'section_id', 'teacher_id'])
+                    ->groupBy(function ($row) {
+                        return $row->class_id . '-' . $row->section_id;
+                    })
+                    ->map(function (Collection $rows) {
+                        return $rows
+                            ->filter(function ($row) {
+                                return $row->teacher;
+                            })
+                            ->unique('teacher_id')
+                            ->map(function ($row) {
+                                return [
+                                    'id' => $row->teacher->id,
+                                    'first_name' => $row->teacher->first_name,
+                                    'last_name' => $row->teacher->last_name,
+                                    'email' => $row->teacher->email,
+                                    'phone' => $row->teacher->phone,
+                                ];
+                            })
+                            ->values();
+                    });
             }
         }
 
-        $childrenSummary = $children->map(function ($child) use ($promotions, $resultCountByStudentId, $assignmentCountByPair, $teacherCountByPair) {
+        $childrenSummary = $children->map(function ($child) use ($promotions, $resultCountByStudentId, $assignmentCountByPair, $teacherCountByPair, $teacherContactsByPair) {
             $student = $child->student;
 
             if (!$student) {
@@ -482,6 +512,7 @@ class DashboardController extends Controller
                     'resultCount' => 0,
                     'assignmentCount' => 0,
                     'teacherCount' => 0,
+                    'teacherContacts' => collect(),
                 ];
             }
 
@@ -490,6 +521,7 @@ class DashboardController extends Controller
             $resultCount = (int) ($resultCountByStudentId[$student->id] ?? 0);
             $assignmentCount = $pairKey ? (int) ($assignmentCountByPair[$pairKey] ?? 0) : 0;
             $teacherCount = $pairKey ? (int) ($teacherCountByPair[$pairKey] ?? 0) : 0;
+            $teacherContacts = $pairKey ? ($teacherContactsByPair[$pairKey] ?? collect()) : collect();
 
             return [
                 'student' => $student,
@@ -498,8 +530,16 @@ class DashboardController extends Controller
                 'resultCount' => $resultCount,
                 'assignmentCount' => $assignmentCount,
                 'teacherCount' => $teacherCount,
+                'teacherContacts' => $teacherContacts,
             ];
         });
+
+        $schoolAdminContacts = User::query()
+            ->where('school_id', $schoolId)
+            ->where('role', 'admin')
+            ->orderBy('first_name')
+            ->orderBy('last_name')
+            ->get(['id', 'first_name', 'last_name', 'email', 'phone']);
 
         $recentNotices = Notice::where('school_id', $schoolId)
             ->when($currentSessionId, function ($query, $sessionId) {
@@ -519,6 +559,7 @@ class DashboardController extends Controller
 
         return view('dashboards.parent', [
             'childrenSummary' => $childrenSummary,
+            'schoolAdminContacts' => $schoolAdminContacts,
             'recentNotices' => $recentNotices,
             'upcomingEvents' => $upcomingEvents,
         ]);

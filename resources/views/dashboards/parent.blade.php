@@ -73,6 +73,73 @@
         </div>
     </div>
 
+    <div class="row g-3 mb-4">
+        <div class="col-lg-8">
+            <div class="card h-100">
+                <div class="card-header bg-transparent"><i class="bi bi-person-badge me-2"></i> Assigned Teacher Contacts</div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Teacher</th>
+                                    <th>Student</th>
+                                    <th>Email</th>
+                                    <th>Phone</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php
+                                    $teacherRows = collect();
+                                    foreach ($childrenSummary as $child) {
+                                        foreach (($child['teacherContacts'] ?? collect()) as $teacher) {
+                                            $teacherRows->push([
+                                                'teacher' => $teacher,
+                                                'studentName' => trim(optional($child['student'])->first_name . ' ' . optional($child['student'])->last_name),
+                                            ]);
+                                        }
+                                    }
+                                    $teacherRows = $teacherRows->unique(function ($row) {
+                                        return ($row['teacher']['id'] ?? 'na') . '-' . strtolower((string) ($row['studentName'] ?? ''));
+                                    })->values();
+                                @endphp
+
+                                @forelse($teacherRows as $row)
+                                    <tr>
+                                        <td>{{ ($row['teacher']['first_name'] ?? '') . ' ' . ($row['teacher']['last_name'] ?? '') }}</td>
+                                        <td>{{ $row['studentName'] ?: '-' }}</td>
+                                        <td>{{ $row['teacher']['email'] ?? '-' }}</td>
+                                        <td>{{ $row['teacher']['phone'] ?? '-' }}</td>
+                                    </tr>
+                                @empty
+                                    <tr><td colspan="4" class="text-center py-3">No assigned teacher contacts available yet.</td></tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="card h-100">
+                <div class="card-header bg-transparent"><i class="bi bi-building me-2"></i> School Admin Contacts</div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        @forelse($schoolAdminContacts as $admin)
+                            <li class="list-group-item">
+                                <div class="fw-semibold">{{ $admin->first_name }} {{ $admin->last_name }}</div>
+                                <div class="small text-muted">{{ $admin->email ?: '-' }}</div>
+                                <div class="small text-muted">{{ $admin->phone ?: '-' }}</div>
+                            </li>
+                        @empty
+                            <li class="list-group-item text-muted">No school admin contact available.</li>
+                        @endforelse
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card h-100">

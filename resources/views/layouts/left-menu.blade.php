@@ -20,6 +20,7 @@
                         <a type="button" href="{{url('attendances')}}" class="d-flex nav-link {{ request()->is('attendances*')? 'active' : '' }}"><i class="bi bi-calendar2-week"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Attendance</span></a>
                     </li>
                     @endif --}}
+                    @if(Auth::user()->role != "parent")
                     @can('view classes')
                     <li class="nav-item">
                         <a class="nav-link d-flex {{ request()->is('classes')? 'active' : '' }}" href="{{url('classes')}}"><i class="bi bi-diagram-3"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Classes</span> <span class="ms-auto d-inline d-sm-none d-md-none d-xl-inline">{{ $menuClassCount ?? 0 }}</span></a>
@@ -48,6 +49,7 @@
                             @endif
                         </ul>
                     </li>
+                    @endif
                     @endif
                     @if(Auth::user()->role == "teacher")
                     <li class="nav-item">
@@ -79,7 +81,7 @@
                         @endif
                     </li>
                     @endif
-                    @if(Auth::user()->role != "student")
+                    @if(Auth::user()->role != "student" && Auth::user()->role != "parent")
                     <li class="nav-item border-bottom">
                         <a type="button" href="#exam-grade-submenu" data-bs-toggle="collapse" class="d-flex nav-link {{ request()->is('exams*')? 'active' : '' }}"><i class="bi bi-file-text"></i> <span class="ms-2 d-inline d-sm-none d-md-none d-xl-inline">Exams / Grades</span>
                             <i class="ms-auto d-inline d-sm-none d-md-none d-xl-inline bi bi-chevron-down"></i>
